@@ -1,0 +1,7 @@
+fastapi
+flask
+uvicorn
+sqlalchemy
+sqlite
+pydantic
+```
