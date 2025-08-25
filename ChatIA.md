@@ -104,3 +104,22 @@ Implementar as funções específicas do modal
 Criar os endpoints da API no backend
 Implementar o sistema de autenticação para curadores
 Adicionar mais validações conforme necessário
+
+--------------
+
+
+Vou remover a seção inicio e ajustar o link e o manipulador de navegação para que o botão "Início" apenas role para o topo. Vou editar index.html (três substituições: nav link, <main> tag, e o listener de nav). Espero que isso resolva.
+
+index.html+1-1
+Agora vou ajustar o listener de navegação: interpretar href '#' como scroll-to-top e os demais continuarão abrindo modal. Vou substituir o listener bloco.
+
+index.html+4-4
+Feito — removi a seção inicio e atualizei o link "Início" para # que agora apenas rola para o topo. Os links "Coleções" e "Sobre" continuam abrindo o modal centralizado. Teste e me diga se quer que eu atualize o histórico do navegador (pushState) quando abrir as views.
+
+Restore Checkpoint
+Exclua esse botão 'Inicio', não o quero mais no projeto. Não acho necessário
+
+Vou remover apenas o item "Início" do menu de navegação no index.html para manter o restante intacto — objetivo: excluir o botão sem quebrar a navegação. Vou aplicar a edição agora.
+
+index.html+0-1
+Removido o botão "Início" do menu de navegação. Os links restantes ("Coleções" e "Sobre") continuam funcionando como antes. Quer que eu atualize o espaçamento do header agora que um item foi removido?
