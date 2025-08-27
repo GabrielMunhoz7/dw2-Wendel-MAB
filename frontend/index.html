@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Catálogo de Moedas - MAB</title>
+    <title>CATÁLOGO DE MOEDAS</title>
     <!-- Importação de fontes diretamente no HTML para garantir carregamento -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,7 +12,7 @@
     <style>
     /* Variáveis de cores */
     :root {
-      --primary: #8B4513;    /* marrom antigo */
+    --primary: #58311e;    /* bronze metálico */
       --secondary: #DAA520;  /* dourado */
       --accent: #CD853F;     /* bronze */
       --background: #FDF5E6; /* bege claro */
@@ -276,25 +276,49 @@
       transform: scale(1);
     }
 
-    .close-modal {
+    /* Botões padronizados de fechar (modal de moeda e modal de views) */
+    .close-modal,
+    .close-view-modal {
         position: absolute;
         right: 1rem;
         top: 1rem;
-        background: none;
-        border: none;
-        font-size: 1.5rem;
-        cursor: pointer;
-        color: var(--text);
-        transition: color 0.3s;
-        width: 30px;
-        height: 30px;
+        width: 40px;
+        height: 40px;
         display: flex;
         align-items: center;
         justify-content: center;
+        background: var(--background);
+        color: var(--text);
+        border: 1px solid rgba(0,0,0,0.08);
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1rem;
+        line-height: 1;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+        transition: transform 0.12s ease, background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
     }
 
-    .close-modal:hover {
-        color: var(--primary);
+    .close-modal svg,
+    .close-view-modal svg {
+        width: 16px;
+        height: 16px;
+        display: block;
+        stroke: currentColor;
+        fill: none;
+    }
+
+    .close-modal:hover,
+    .close-view-modal:hover {
+        transform: scale(1.06);
+        background: var(--accent);
+        color: #fff;
+        border-color: rgba(0,0,0,0.12);
+    }
+
+    .close-modal:focus,
+    .close-view-modal:focus {
+        outline: 3px solid rgba(205,133,63,0.24);
+        outline-offset: 2px;
     }
 
     .modal-tabs {
@@ -332,11 +356,122 @@
     }
 
     .tab-panel {
-        display: none;
+    display: none;
+    position: relative;
+    overflow: hidden; /* ensure panels clip their children (image zoom won't overflow into other panels) */
     }
 
     .tab-panel.active {
         display: block;
+    }
+
+    /* Imagem da moeda - painel e zoom */
+    .image-panel {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 1rem 0;
+        /* ensure image area is isolated and centered */
+        gap: 1rem;
+    }
+    /* wrapper keeps the image centered and clips the scaled image */
+    .img-wrapper {
+        width: 320px;
+        max-width: 70%;
+        background: #f5f5f5;
+        border-radius: 8px;
+        padding: 1.25rem;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden; /* clip zoom */
+        margin: 0 auto;
+    }
+
+    .image-panel img {
+        width: 100%;
+        height: auto;
+        display: block;
+        transition: transform 0.28s cubic-bezier(.2,.9,.2,1);
+        cursor: zoom-in;
+        border-radius: 6px;
+        transform-origin: center center;
+    }
+
+    .image-panel img.zoomed {
+        transform: scale(2);
+        cursor: zoom-out;
+    }
+
+    /* Two-up layout for obverse/reverse */
+    .img-pair {
+        display: flex;
+        gap: 1.25rem;
+        justify-content: center;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        width: 100%;
+    }
+
+    .img-block {
+        width: 320px;
+        max-width: 46%;
+        min-width: 220px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .pan-container {
+        width: 100%;
+        height: 320px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        overflow: hidden; /* clip while panning/zooming */
+        border-radius: 8px;
+        background: #f5f5f5;
+    }
+
+    .pan-container img {
+        transform-origin: center center;
+        transition: transform 0.12s ease-out;
+        touch-action: none; /* we'll handle pointer dragging */
+        cursor: grab;
+        user-select: none;
+        -webkit-user-drag: none;
+        max-width: none; /* allow scaling beyond container */
+        width: auto;
+        height: auto;
+        max-height: 100%;
+    }
+
+    .img-controls {
+        display:flex;
+        gap:.5rem;
+        align-items:center;
+        justify-content:center;
+    }
+
+    .img-controls button {
+        background: var(--primary);
+        color: white;
+        border: none;
+        padding: .35rem .6rem;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+
+    .img-controls input[type=range] {
+        width: 120px;
+    }
+
+    .img-label {
+        font-size: .9rem;
+        color: #6b4a2a;
+        margin-top: .25rem;
     }
 
     /* Estados de carregamento */
@@ -477,9 +612,8 @@
     <header>
         <div class="header-container">
             <div class="logo-container">
-                <img src="assets/museum-logo.png" alt="Logo do MAB" onerror="this.style.display='none'">
-                <img src="assets/unasp-logo.png" alt="Logo UNASP" onerror="this.style.display='none'">
-                <h1 class="site-title">Catálogo de Moedas - MAB</h1>
+                <img src="assets/museum-logo.png" alt="Logo do MAB e UNASP" onerror="this.style.display='none'">
+                <h1 class="site-title">CATÁLOGO DE MOEDAS</h1>
             </div>
             
             <div class="search-bar">
@@ -547,17 +681,23 @@
     </section>
 
     <!-- Template do Modal -->
-    <div id="coinModal" class="modal" role="dialog" aria-labelledby="modal-title" aria-hidden="true">
+            <div id="coinModal" class="modal" role="dialog" aria-labelledby="modal-title" aria-hidden="true">
         <div class="modal-content">
-            <button class="close-modal" aria-label="Fechar modal">&times;</button>
+            <button class="close-modal" aria-label="Fechar modal">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6L18 18M6 18L18 6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
             <h2 id="modal-title" style="margin-bottom: 1rem;">Detalhes da Moeda</h2>
             <div class="modal-tabs">
-                <button class="tab-btn active" data-tab="historia" role="tab" aria-selected="true">História</button>
+                <button class="tab-btn active" data-tab="imagem" role="tab" aria-selected="true">Imagem</button>
+                <button class="tab-btn" data-tab="historia" role="tab" aria-selected="false">História</button>
                 <button class="tab-btn" data-tab="contexto" role="tab" aria-selected="false">Contexto Bíblico</button>
                 <button class="tab-btn" data-tab="referencia" role="tab" aria-selected="false">Referência Histórica</button>
             </div>
             <div class="tab-content">
-                <div id="historia" class="tab-panel active" role="tabpanel">
+                <div id="imagem" class="tab-panel active image-panel" role="tabpanel">
+                    <!-- imagem será inserida via JavaScript -->
+                </div>
+                <div id="historia" class="tab-panel" role="tabpanel">
                     <!-- Conteúdo será inserido via JavaScript -->
                 </div>
                 <div id="contexto" class="tab-panel" role="tabpanel">
@@ -573,7 +713,9 @@
         <!-- Modal para exibir views (Coleções / Sobre) -->
         <div id="viewModal" class="modal" role="dialog" aria-hidden="true">
             <div class="modal-content" id="viewModalContent">
-                <button class="close-view-modal" aria-label="Fechar">&times;</button>
+                    <button class="close-view-modal" aria-label="Fechar">
+                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6L18 18M6 18L18 6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </button>
                 <div id="viewModalBody"></div>
             </div>
         </div>
@@ -641,23 +783,42 @@
                 const periodContainer = document.getElementById('period-filters');
                 const regionContainer = document.getElementById('region-filters');
     
-                periodContainer.innerHTML = periods.map(p => `
+                periodContainer.innerHTML = periods.map(p => {
+                    const cnt = coinsData.filter(c => c.period === p).length;
+                    return `
                     <label style="display:block;margin-bottom:0.5rem;">
-                        <input type="checkbox" name="period" value="${p}"> ${p}
+                        <input type="checkbox" name="period" value="${p}"> ${p} <span class="filter-count" style="color:var(--accent);font-weight:600">(${cnt})</span>
                     </label>
-                `).join('');
+                `
+                }).join('');
     
-                regionContainer.innerHTML = regions.map(r => `
+                regionContainer.innerHTML = regions.map(r => {
+                    const cnt = coinsData.filter(c => c.region === r).length;
+                    return `
                     <label style="display:block;margin-bottom:0.5rem;">
-                        <input type="checkbox" name="region" value="${r}"> ${r}
+                        <input type="checkbox" name="region" value="${r}"> ${r} <span class="filter-count" style="color:var(--accent);font-weight:600">(${cnt})</span>
                     </label>
-                `).join('');
+                `
+                }).join('');
     
-                // adicionar listeners
+                // adicionar listeners (individual) e delegação em container para maior robustez
                 Array.from(document.querySelectorAll('#period-filters input, #region-filters input'))
                     .forEach(cb => cb.addEventListener('change', applyFilters));
-    
+
+                // delegation: catch clicks/changes at the container level
+                periodContainer.addEventListener('change', applyFilters);
+                periodContainer.addEventListener('click', function(e) {
+                    // if label text was clicked, ensure filter updates
+                    if (e.target && e.target.tagName === 'LABEL') applyFilters();
+                });
+                regionContainer.addEventListener('change', applyFilters);
+                regionContainer.addEventListener('click', function(e) {
+                    if (e.target && e.target.tagName === 'LABEL') applyFilters();
+                });
+
+                // initial counts and sync
                 updateFilterCounts();
+                applyFilters();
             }
     
             function getCheckedValues(name) {
@@ -686,17 +847,16 @@
                     const inp = label.querySelector('input');
                     const val = inp.value;
                     const count = filteredList.filter(c => c.period === val).length;
-                    // mantém o checkbox e adiciona contador
-                    label.innerHTML = `<input type="checkbox" name="period" value="${val}"> ${val} <span style="color:var(--accent);font-weight:600">(${count})</span>`;
-                    label.querySelector('input').checked = inp.checked;
+                    const span = label.querySelector('.filter-count');
+                    if (span) span.textContent = `(${count})`;
                 });
     
                 document.querySelectorAll('#region-filters label').forEach(label => {
                     const inp = label.querySelector('input');
                     const val = inp.value;
                     const count = filteredList.filter(c => c.region === val).length;
-                    label.innerHTML = `<input type="checkbox" name="region" value="${val}"> ${val} <span style="color:var(--accent);font-weight:600">(${count})</span>`;
-                    label.querySelector('input').checked = inp.checked;
+                    const span = label.querySelector('.filter-count');
+                    if (span) span.textContent = `(${count})`;
                 });
             }
     
@@ -708,30 +868,181 @@
             // renderizar filtros iniciais
             renderFilters();
     
+            // track which coin is currently open so we can populate image only when needed
+            let currentOpenCoin = null;
+
+            function populateImagePanel(coin) {
+                const imgPanel = document.getElementById('imagem');
+                // if the imagem panel is not active, do not insert the image
+                if (!imgPanel.classList.contains('active')) {
+                    imgPanel.innerHTML = '';
+                    return;
+                }
+
+                if (!coin) {
+                    imgPanel.innerHTML = '';
+                    return;
+                }
+                // We expect coin.image to be the obverse; if coin has image_rev use as reverse
+                const placeholder = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjBGMEYwIi8+CjxjaXJjbGUgY3g9IjEwMCIgY3k9IjEwMCIgcj0iNDAiIHN0cm9rZT0iIzhCNDUxMyIgc3Ryb2tlLXdpZHRoPSIyIiBmaWxsPSJub25lIi8+Cjx0ZXh0IHg9IjEwMCIgeT0iMTA1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiM4QjQ1MTMiPk1vZWRhPC90ZXh0Pgo8L3N2Zz4K";
+
+                const obv = coin.image || placeholder;
+                const rev = coin.image_rev || placeholder;
+
+                const imgHtml = `
+                    <div class="img-pair">
+                        <div class="img-block">
+                            <div class="pan-container" data-side="cara">
+                                <img src="${obv}" alt="${coin.name} - Cara" onerror="this.src='${placeholder}'" />
+                            </div>
+                            <div class="img-label">Cara</div>
+                            <div class="img-controls">
+                                <button data-action="zoom-out">-</button>
+                                <input type="range" min="1" max="5" step="0.1" value="1" data-role="zoom-range">
+                                <button data-action="zoom-in">+</button>
+                            </div>
+                        </div>
+                        <div class="img-block">
+                            <div class="pan-container" data-side="coroa">
+                                <img src="${rev}" alt="${coin.name} - Coroa" onerror="this.src='${placeholder}'" />
+                            </div>
+                            <div class="img-label">Coroa</div>
+                            <div class="img-controls">
+                                <button data-action="zoom-out">-</button>
+                                <input type="range" min="1" max="5" step="0.1" value="1" data-role="zoom-range">
+                                <button data-action="zoom-in">+</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                imgPanel.innerHTML = imgHtml;
+
+                // wire up interactions for both pan-containers
+                const blocks = imgPanel.querySelectorAll('.img-block');
+                blocks.forEach(block => {
+                    const pan = block.querySelector('.pan-container');
+                    const img = pan.querySelector('img');
+                    const range = block.querySelector('input[data-role="zoom-range"]');
+                    const btnIn = block.querySelector('button[data-action="zoom-in"]');
+                    const btnOut = block.querySelector('button[data-action="zoom-out"]');
+
+                    // state
+                    let scale = parseFloat(range.value) || 1;
+                    let originX = 0, originY = 0;
+                    let posX = 0, posY = 0; // translate
+                    let dragging = false;
+                    let startX = 0, startY = 0;
+
+                    function applyTransform() {
+                        img.style.transform = `translate(${posX}px, ${posY}px) scale(${scale})`;
+                    }
+
+                    // range control
+                    range.addEventListener('input', function() {
+                        scale = parseFloat(this.value);
+                        // clamp
+                        scale = Math.max(1, Math.min(5, scale));
+                        applyTransform();
+                    });
+
+                    btnIn.addEventListener('click', function() {
+                        scale = Math.min(5, +(Math.round((scale + 0.5) * 10) / 10));
+                        range.value = scale;
+                        applyTransform();
+                    });
+                    btnOut.addEventListener('click', function() {
+                        scale = Math.max(1, +(Math.round((scale - 0.5) * 10) / 10));
+                        range.value = scale;
+                        // reset position when zoom returns to 1
+                        if (scale === 1) { posX = posY = 0; }
+                        applyTransform();
+                    });
+
+                    // wheel to zoom (ctrl + wheel or wheel alone)
+                    pan.addEventListener('wheel', function(e) {
+                        e.preventDefault();
+                        const delta = -e.deltaY || e.wheelDelta;
+                        const step = delta > 0 ? 0.1 : -0.1;
+                        scale = Math.max(1, Math.min(8, +(Math.round((scale + step) * 10) / 10)));
+                        range.value = scale;
+                        applyTransform();
+                    }, { passive: false });
+
+                    // pointer drag for panning
+                    pan.addEventListener('pointerdown', function(e) {
+                        if (scale <= 1) return; // no pan when not zoomed
+                        dragging = true;
+                        pan.setPointerCapture(e.pointerId);
+                        startX = e.clientX - posX;
+                        startY = e.clientY - posY;
+                        img.style.cursor = 'grabbing';
+                    });
+
+                    pan.addEventListener('pointermove', function(e) {
+                        if (!dragging) return;
+                        posX = e.clientX - startX;
+                        posY = e.clientY - startY;
+                        applyTransform();
+                    });
+
+                    pan.addEventListener('pointerup', function(e) {
+                        dragging = false;
+                        try { pan.releasePointerCapture(e.pointerId); } catch (err) {}
+                        img.style.cursor = 'grab';
+                    });
+
+                    pan.addEventListener('pointercancel', function(e) {
+                        dragging = false;
+                        try { pan.releasePointerCapture(e.pointerId); } catch (err) {}
+                        img.style.cursor = 'grab';
+                    });
+
+                    // double click resets to 1x and center
+                    img.addEventListener('dblclick', function() {
+                        scale = 1; posX = 0; posY = 0; range.value = 1; applyTransform();
+                    });
+                });
+            }
+
             // Abrir modal
             window.openModal = function(coinId) {
                 const coin = coinsData.find(c => c.id === coinId);
                 if (!coin) return;
 
+                currentOpenCoin = coin;
+
                 const modal = document.getElementById('coinModal');
                 const modalTitle = document.getElementById('modal-title');
-                
+
                 modalTitle.textContent = coin.name;
-                
+
                 // Preencher conteúdo das abas
                 document.getElementById('historia').innerHTML = `<p>${coin.historia}</p>`;
                 document.getElementById('contexto').innerHTML = `<p>${coin.contexto}</p>`;
                 document.getElementById('referencia').innerHTML = `<p>${coin.referencia}</p>`;
-                
+
+                // populate image only if the imagem tab is active
+                populateImagePanel(coin);
+
+                // abrir modal e bloquear scroll do body
                 modal.classList.add('show');
                 modal.setAttribute('aria-hidden', 'false');
+                document.body.style.overflow = 'hidden';
             };
 
             // Fechar modal
             function closeModal() {
                 const modal = document.getElementById('coinModal');
+                // remover zoom se houver
+                const img = document.getElementById('coinImage');
+                if (img) img.classList.remove('zoomed');
+                // clear image panel
+                const imgPanel = document.getElementById('imagem');
+                if (imgPanel) imgPanel.innerHTML = '';
                 modal.classList.remove('show');
                 modal.setAttribute('aria-hidden', 'true');
+                // restaurar scroll do body
+                document.body.style.overflow = '';
             }
 
             // Event listeners
@@ -746,19 +1057,29 @@
                 btn.addEventListener('click', function() {
                     const tabId = this.dataset.tab;
                     
-                    // Atualizar botões
-                    document.querySelectorAll('.tab-btn').forEach(b => {
-                        b.classList.remove('active');
-                        b.setAttribute('aria-selected', 'false');
-                    });
-                    this.classList.add('active');
-                    this.setAttribute('aria-selected', 'true');
-                    
-                    // Atualizar painéis
-                    document.querySelectorAll('.tab-panel').forEach(panel => {
-                        panel.classList.remove('active');
-                    });
-                    document.getElementById(tabId).classList.add('active');
+                        // Atualizar botões
+                        document.querySelectorAll('.tab-btn').forEach(b => {
+                            b.classList.remove('active');
+                            b.setAttribute('aria-selected', 'false');
+                        });
+                        this.classList.add('active');
+                        this.setAttribute('aria-selected', 'true');
+
+                        // Atualizar painéis
+                        document.querySelectorAll('.tab-panel').forEach(panel => {
+                            panel.classList.remove('active');
+                        });
+                        const targetPanel = document.getElementById(tabId);
+                        targetPanel.classList.add('active');
+
+                        // If imagem tab became active, populate the image panel; otherwise clear it
+                        if (tabId === 'imagem') {
+                            populateImagePanel(currentOpenCoin);
+                        } else {
+                            // clear image to avoid it visually leaking into other panels
+                            const imgPanel = document.getElementById('imagem');
+                            if (imgPanel) imgPanel.innerHTML = '';
+                        }
                 });
             });
 

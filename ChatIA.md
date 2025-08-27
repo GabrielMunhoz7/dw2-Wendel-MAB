@@ -21,7 +21,7 @@ Apague os comandos que contém no frontend faça novos de acordo com as seguinte
 Especificações - Catálogo de Moedas Antigas do Museu
 Identidade Visual
 Paleta de cores:
-Primária: #8B4513 (marrom antigo)
+Primária: #58311e (marrom antigo)
 Secundária: #DAA520 (dourado)
 Acento: #CD853F (bronze)
 Fundo: #FDF5E6 (bege claro)
@@ -123,3 +123,45 @@ Vou remover apenas o item "Início" do menu de navegação no index.html para ma
 
 index.html+0-1
 Removido o botão "Início" do menu de navegação. Os links restantes ("Coleções" e "Sobre") continuam funcionando como antes. Quer que eu atualize o espaçamento do header agora que um item foi removido?
+
+------------------------
+
+
+Summarized conversation history
+
+Vou procurar por todas as ocorrências de "#371e12" no projeto para substituí-las por "#58311e" (busca global para listar os arquivos afetados).
+
+Vou aplicar as substituições nos três arquivos encontrados.
+
+index.html+1-1
+styles.css+1-1
+ChatIA.md+1-1
+Summarized conversation history
+
+I updated the project notes and will give a concise progress update plus suggested next improvements.
+
+Quick progress
+File edited: ChatIA.md — updated primary color to #58311e.
+Requirements checklist (from prior conversation)
+Header/title sizing & single logo — Done
+Interactive left-side filters with counts — Done
+Nav links open modal (Coleções / Sobre) — Done
+Modal detail view with tabs and new "Imagem" tab — Done
+Two-image layout (Cara / Coroa) in Imagem tab — Done
+Zoom/pan controls (slider, buttons, wheel, drag, dblclick reset) — Done (desktop)
+Prevent zoom overflow between panels — Done (clipping)
+Primary brand color set to #58311e — Done
+Mobile pinch-to-zoom support — Deferred
+Pan bounding (limit panning so image can’t be dragged out of view) — Deferred
+Backend scaffold (SQLite) — Deferred / not yet implemented
+What I changed now
+Replaced the color mention in ChatIA.md to the final color #58311e. Change saved.
+Suggested next steps (pick one)
+Implement mobile pinch-to-zoom for the image panel (adds multi-pointer gesture handling).
+Add pan bounding to prevent images being dragged completely out of view.
+Implement small visual UI polish: show current zoom value and add a “Reset / Fit” button.
+Tell me which one to implement next (I can start immediately), or say “Do all” and I’ll implement pinch-zoom + pan bounds and add a reset control.
+
+--------------------------------------------
+
+

@@ -3,7 +3,7 @@
 
 /* Variáveis de cores */
 :root {
-  --primary: #8B4513;    /* marrom antigo */
+  --primary: #58311e;    /* marrom antigo */
   --secondary: #DAA520;  /* dourado */
   --accent: #CD853F;     /* bronze */
   --background: #FDF5E6; /* bege claro */
@@ -67,8 +67,15 @@ header {
 .header-container > * {
   flex: 0 1 auto;
 }
+.header-container > * {
+  flex: 0 1 auto;
+}
+
+header {
+  background: var(--primary);
   padding: 1rem 0;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  width: 100%;
 }
 
 .header-container {
@@ -78,6 +85,8 @@ header {
   max-width: 1200px;
   margin: 0 auto;
   padding: 1rem 2rem;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .logo-container {
