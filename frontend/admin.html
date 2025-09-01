@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin - Catálogo de Moedas</title>
+  <style>
+    body{font-family:Nunito,system-ui,Arial;background:#F8F3EC;color:#2F1B14;padding:1rem}
+    h1{color:#58311e}
+    table{width:100%;border-collapse:collapse;margin-top:1rem}
+    th,td{padding:.5rem;border:1px solid #e6dfd2}
+    input,textarea,select{width:100%;padding:.4rem;border:1px solid #d6c6b8;border-radius:4px}
+    .row{display:flex;gap:.5rem}
+    .col{flex:1}
+    .actions{display:flex;gap:.5rem}
+    button{background:#58311e;color:#fff;border:none;padding:.5rem .7rem;border-radius:6px;cursor:pointer}
+    .danger{background:#a33}
+    .muted{background:#eee;color:#333}
+    .topbar{display:flex;gap:1rem;align-items:center;justify-content:space-between}
+    .small{font-size:.9rem;color:#6b4a2a}
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <h1>Administração - Catálogo de Moedas</h1>
+    <div>
+      <a href="/" style="margin-right:1rem;color:#58311e;text-decoration:none">Voltar ao site</a>
+      <span id="adminStatus" class="small">Não autenticado</span>
+    </div>
+  </div>
+
+  <section style="margin-top:1rem">
+    <h2>Login de Editor</h2>
+    <div style="max-width:480px;">
+      <input id="adm_user" placeholder="Usuário" />
+      <input id="adm_pass" placeholder="Senha" type="password" style="margin-top:.5rem" />
+      <div style="margin-top:.5rem">
+        <button id="admLogin">Entrar</button>
+        <button id="admLogout" class="muted" style="display:none">Sair</button>
+      </div>
+    </div>
+  </section>
+
+  <section style="margin-top:1.5rem">
+    <h2>Nova Moeda</h2>
+    <div style="max-width:900px;display:grid;grid-template-columns:1fr 1fr;gap:.5rem;align-items:start">
+      <input id="new_name" placeholder="Nome" />
+      <input id="new_period" placeholder="Período" />
+      <input id="new_region" placeholder="Região" />
+      <input id="new_year" placeholder="Ano" />
+      <input id="new_image_front" placeholder="Imagem frontal (assets/...)" />
+      <input id="new_image_back" placeholder="Imagem verso (assets/...)" />
+      <textarea id="new_description" placeholder="Descrição" style="grid-column:1 / -1"></textarea>
+      <div style="grid-column:1 / -1;text-align:right"><button id="createCoin">Criar Moeda</button></div>
+    </div>
+  </section>
+
+  <section style="margin-top:1.5rem">
+    <h2>Lista de Moedas</h2>
+    <div id="coinsContainer">
+      <div class="small">Carregando...</div>
+    </div>
+  </section>
+
+  <script>
+    let token = localStorage.getItem('editorToken') || null;
+    const statusEl = document.getElementById('adminStatus');
+    function updateStatus() { statusEl.textContent = token ? 'Autenticado' : 'Não autenticado'; document.getElementById('admLogout').style.display = token ? 'inline-block' : 'none'; }
+    updateStatus();
+
+    async function fetchCoins() {
+      const res = await fetch('/api/coins');
+      const data = await res.json();
+      renderList(data);
+    }
+
+    function renderList(coins) {
+      const container = document.getElementById('coinsContainer');
+      if (!coins || coins.length === 0) { container.innerHTML = '<div class="small">Nenhuma moeda</div>'; return; }
+      let html = '<table><thead><tr><th>ID</th><th>Nome</th><th>Período</th><th>Região</th><th>Ano</th><th>Imagem Frente</th><th>Imagem Verso</th><th>Descrição</th><th></th></tr></thead><tbody>';
+      coins.forEach(c => {
+        html += `<tr data-id="${c.id}"><td>${c.id}</td><td><input data-field="name" value="${(c.name||'').replace(/"/g,'&quot;')}" /></td><td><input data-field="period" value="${(c.period||'').replace(/"/g,'&quot;')}" /></td><td><input data-field="region" value="${(c.region||'').replace(/"/g,'&quot;')}" /></td><td><input data-field="year" value="${(c.year||'').replace(/"/g,'&quot;')}" /></td><td><input data-field="image_front" value="${(c.image_front||'').replace(/"/g,'&quot;')}" /></td><td><input data-field="image_back" value="${(c.image_back||'').replace(/"/g,'&quot;')}" /></td><td><textarea data-field="description">${(c.description||'')}</textarea></td><td class="actions"><button data-action="save">Salvar</button><button data-action="del" class="danger">Excluir</button></td></tr>`;
+      });
+      html += '</tbody></table>';
+      container.innerHTML = html;
+
+      container.querySelectorAll('button[data-action="save"]').forEach(b => {
+        b.addEventListener('click', async (e) => {
+          const row = e.target.closest('tr');
+          const id = row.dataset.id;
+          const payload = {};
+          row.querySelectorAll('[data-field]').forEach(inp => payload[inp.getAttribute('data-field')] = inp.value);
+          const headers = { 'Content-Type':'application/json' };
+          if (token) headers['Authorization'] = 'Bearer ' + token;
+          const res = await fetch('/api/coins/' + id, { method:'PUT', headers, body: JSON.stringify(payload) });
+          if (res.ok) { alert('Salvo'); fetchCoins(); } else { alert('Erro ao salvar (verifique autenticação).'); }
+        });
+      });
+
+      container.querySelectorAll('button[data-action="del"]').forEach(b => {
+        b.addEventListener('click', async (e) => {
+          if (!confirm('Confirma exclusão?')) return;
+          const row = e.target.closest('tr');
+          const id = row.dataset.id;
+          const headers = {};
+          if (token) headers['Authorization'] = 'Bearer ' + token;
+          const res = await fetch('/api/coins/' + id, { method:'DELETE', headers });
+          if (res.ok) fetchCoins(); else alert('Erro ao excluir');
+        });
+      });
+    }
+
+    document.getElementById('admLogin').addEventListener('click', async function(){
+      const u = document.getElementById('adm_user').value; const p = document.getElementById('adm_pass').value;
+      const res = await fetch('/api/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ username: u, password: p })});
+      if (res.ok) { const data = await res.json(); token = data.token; localStorage.setItem('editorToken', token); updateStatus(); alert('Logado'); } else { alert('Credenciais inválidas'); }
+    });
+
+    document.getElementById('admLogout').addEventListener('click', function(){ localStorage.removeItem('editorToken'); token = null; updateStatus(); });
+
+    document.getElementById('createCoin').addEventListener('click', async function(){
+      const payload = {
+        name: document.getElementById('new_name').value,
+        period: document.getElementById('new_period').value,
+        region: document.getElementById('new_region').value,
+        year: document.getElementById('new_year').value,
+        image_front: document.getElementById('new_image_front').value,
+        image_back: document.getElementById('new_image_back').value,
+        description: document.getElementById('new_description').value,
+      };
+      const headers = {'Content-Type':'application/json'};
+      if (token) headers['Authorization'] = 'Bearer ' + token;
+      const res = await fetch('/api/coins', { method:'POST', headers, body: JSON.stringify(payload) });
+      if (res.ok) { alert('Criado'); fetchCoins(); } else { alert('Erro ao criar (autenticação necessária)'); }
+    });
+
+    // initial load
+    fetchCoins();
+  </script>
+</body>
+</html>

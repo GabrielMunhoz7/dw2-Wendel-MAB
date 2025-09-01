@@ -624,6 +624,7 @@
                 <ul>
                     <li><a href="#colecoes">Coleções</a></li>
                     <li><a href="#sobre">Sobre</a></li>
+                    <li><button id="editorBtn" style="background:transparent;border:1px solid rgba(255,255,255,0.12);color:var(--background);padding:.4rem .8rem;border-radius:6px;cursor:pointer">Editor</button></li>
                 </ul>
             </nav>
         </div>
@@ -723,8 +724,8 @@
     <script>
         // JavaScript integrado para funcionalidade básica
         document.addEventListener('DOMContentLoaded', function() {
-            // Exemplo de dados de moedas
-            const coinsData = [
+            // Exemplo de dados de moedas (fallback local). The app will try to load from /api/coins
+            let coinsData = [
                 {
                     id: 1,
                     name: "Denário de Tiberio",
@@ -749,6 +750,36 @@
                 }
             ];
 
+            // Try to fetch coins from backend API. If it fails, use the local coinsData defined above.
+            (async function loadCoinsFromApi() {
+                try {
+                    const res = await fetch('/api/coins');
+                    if (!res.ok) throw new Error('Network response not ok');
+                    const apiCoins = await res.json();
+                    // Map API fields to frontend expected fields if necessary
+                    coinsData = apiCoins.map(c => ({
+                        id: c.id,
+                        name: c.name,
+                        period: c.period || c.periodo || '',
+                        region: c.region || c.regiao || '',
+                        year: c.year || c.ano || '',
+                        image: c.image_front || c.image || 'assets/coins/missing.jpg',
+                        image_rev: c.image_back || null,
+                        historia: c.description || c.historia || '',
+                        contexto: c.contexto || '',
+                        referencia: c.referencia || ''
+                    }));
+                    // re-render filters and coins with API data
+                    renderFilters();
+                    renderCoins(coinsData);
+                } catch (err) {
+                    console.warn('Could not load coins from API, using local fallback.', err);
+                    // initial render already happens later; ensure filters reflect local data
+                    renderFilters();
+                    renderCoins(coinsData);
+                }
+            })();
+
             // Renderizar moedas
             function renderCoins(coins = coinsData) {
                 const grid = document.getElementById('coinsGrid');
@@ -759,17 +790,70 @@
                 }
                 
                 grid.innerHTML = coins.map(coin => `
-                    <div class="coin-card fade-in" onclick="openModal(${coin.id})">
-                        <img src="${coin.image}" alt="${coin.name}" class="coin-image" 
-                             onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjBGMEYwIi8+CjxjaXJjbGUgY3g9IjEwMCIgY3k9IjEwMCIgcj0iNDAiIHN0cm9rZT0iIzhCNDUxMyIgc3Ryb2tlLXdpZHRoPSIyIiBmaWxsPSJub25lIi8+Cjx0ZXh0IHg9IjEwMCIgeT0iMTA1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiM4QjQ1MTMiPk1vZWRhPC90ZXh0Pgo8L3N2Zz4K'">
-                        <div class="coin-info">
-                            <h3>${coin.name}</h3>
-                            <p class="coin-period">${coin.period}</p>
-                            <p><strong>Região:</strong> ${coin.region}</p>
-                            <p><strong>Período:</strong> ${coin.year}</p>
+                    <div class="coin-card fade-in">
+                        <div onclick="openModal(${coin.id})" style="cursor:pointer">
+                            <img src="${coin.image}" alt="${coin.name}" class="coin-image" 
+                                 onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjBGMEYwIi8+CjxjaXJjbGUgY3g9IjEwMCIgY3k9IjEwMCIgcj0iNDAiIHN0cm9rZT0iIzhCNDUxMyIgc3Ryb2tlLXdpZHRoPSIyIiBmaWxsPSJub25lIi8+Cjx0ZXh0IHg9IjEwMCIgeT0iMTA1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiM4QjQ1MTMiPk1vZWRhPC90ZXh0Pgo8L3N2Zz4K'>
+                            <div class="coin-info">
+                                <h3>${coin.name}</h3>
+                                <p class="coin-period">${coin.period}</p>
+                                <p><strong>Região:</strong> ${coin.region}</p>
+                                <p><strong>Período:</strong> ${coin.year}</p>
+                            </div>
                         </div>
+                
                     </div>
                 `).join('');
+
+                // if editor is logged in, add per-card edit/delete buttons
+                if (editorToken) {
+                    document.querySelectorAll('button[data-action="edit"]').forEach(b => {
+                        b.addEventListener('click', function(e) {
+                            const id = this.dataset.id;
+                            const coin = coinsData.find(c => c.id == id);
+                            if (!coin) return alert('Moeda não encontrada');
+                            currentOpenCoin = coin;
+                            document.getElementById('modal-title').textContent = 'Editar Moeda';
+                            document.getElementById('historia').innerHTML = `\
+                                <div style="display:flex;flex-direction:column;gap:.5rem;">\
+                                    <input id="f_name" value="${coin.name}" />\
+                                    <input id="f_period" value="${coin.period}" />\
+                                    <input id="f_region" value="${coin.region}" />\
+                                    <input id="f_year" value="${coin.year}" />\
+                                    <input id="f_image" value="${coin.image || ''}" />\
+                                    <textarea id="f_description">${coin.historia || coin.description || ''}</textarea>\
+                                    <button id="saveEditCoin">Salvar</button>\
+                                </div>`;
+                            document.querySelector('.tab-btn[data-tab="historia"]').click();
+                            document.getElementById('coinModal').classList.add('show'); document.body.style.overflow='hidden';
+                            document.getElementById('saveEditCoin').addEventListener('click', async function() {
+                                const payload = {
+                                    name: document.getElementById('f_name').value,
+                                    period: document.getElementById('f_period').value,
+                                    region: document.getElementById('f_region').value,
+                                    year: document.getElementById('f_year').value,
+                                    description: document.getElementById('f_description').value,
+                                    image_front: document.getElementById('f_image').value,
+                                };
+                                const headers = { 'Content-Type': 'application/json' };
+                                if (editorToken) headers['Authorization'] = 'Bearer ' + editorToken;
+                                const res = await fetch('/api/coins/' + id, { method: 'PUT', headers, body: JSON.stringify(payload) });
+                                if (res.ok) { closeModal(); loadCoinsFromApi(); } else { alert('Erro ao salvar edição.'); }
+                            });
+                        });
+                    });
+
+                    document.querySelectorAll('button[data-action="delete"]').forEach(b => {
+                        b.addEventListener('click', async function() {
+                            if (!confirm('Excluir esta moeda?')) return;
+                            const id = this.dataset.id;
+                            const headers = {};
+                            if (editorToken) headers['Authorization'] = 'Bearer ' + editorToken;
+                            const res = await fetch('/api/coins/' + id, { method: 'DELETE', headers });
+                            if (res.ok) loadCoinsFromApi(); else alert('Erro ao excluir');
+                        });
+                    });
+                }
             }
 
             // --- FILTROS INTERATIVOS ---
@@ -870,6 +954,103 @@
     
             // track which coin is currently open so we can populate image only when needed
             let currentOpenCoin = null;
+            let editorToken = localStorage.getItem('editorToken') || null;
+
+            // Login modal markup (insert into DOM)
+            const loginHtml = `
+                <div id="loginModal" class="modal" role="dialog" aria-hidden="true">
+                    <div class="modal-content">
+                        <button class="close-modal" aria-label="Fechar" onclick="document.getElementById('loginModal').classList.remove('show');document.body.style.overflow='';"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6L18 18M6 18L18 6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                        <h2>Login de Editor</h2>
+                        <div style="display:flex;flex-direction:column;gap:.5rem;margin-top:1rem;">
+                            <input id="login_user" placeholder="Usuário" />
+                            <input id="login_pass" placeholder="Senha" type="password" />
+                            <button id="loginBtnDo">Entrar</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', loginHtml);
+
+            document.getElementById('loginBtnDo').addEventListener('click', async function() {
+                const username = document.getElementById('login_user').value;
+                const password = document.getElementById('login_pass').value;
+                const res = await fetch('/api/login', { method: 'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify({ username, password }) });
+                if (res.ok) {
+                    const data = await res.json();
+                    editorToken = data.token;
+                    localStorage.setItem('editorToken', editorToken);
+                    document.getElementById('loginModal').classList.remove('show');
+                    document.body.style.overflow = '';
+                    showEditorControls();
+                    alert('Logado como editor');
+                } else {
+                    alert('Credenciais inválidas');
+                }
+            });
+
+            // Editor UI controls
+            function showEditorControls() {
+                const header = document.querySelector('.header-container');
+                const btn = document.getElementById('editorBtn');
+                if (btn) {
+                    btn.addEventListener('click', function() {
+                        // show login modal
+                        document.getElementById('loginModal').classList.add('show');
+                        document.body.style.overflow = 'hidden';
+                    });
+                }
+
+                // add 'Add coin' button if editor
+                if (editorToken) {
+                    if (!document.getElementById('addCoinBtn')) {
+                        const addBtn = document.createElement('button');
+                        addBtn.textContent = 'Adicionar Moeda';
+                        addBtn.id = 'addCoinBtn';
+                        addBtn.style.marginLeft = '1rem';
+                        addBtn.addEventListener('click', openAddCoinModal);
+                        header.appendChild(addBtn);
+                    }
+                }
+            }
+
+            function openAddCoinModal() {
+                // reuse coin modal for creating
+                currentOpenCoin = null;
+                document.getElementById('modal-title').textContent = 'Adicionar Moeda';
+                document.getElementById('historia').innerHTML = '';
+                document.getElementById('contexto').innerHTML = '';
+                document.getElementById('referencia').innerHTML = '';
+                document.getElementById('imagem').innerHTML = `<div style="padding:1rem">Preencha os dados no formulário.</div>`;
+                // show a quick form in the historia tab for data entry
+                document.getElementById('historia').innerHTML = `
+                    <div style="display:flex;flex-direction:column;gap:.5rem;">
+                        <input id="f_name" placeholder="Nome" />
+                        <input id="f_period" placeholder="Período" />
+                        <input id="f_region" placeholder="Região" />
+                        <input id="f_year" placeholder="Ano" />
+                        <input id="f_image" placeholder="Caminho imagem frontal (assets...)" />
+                        <textarea id="f_description" placeholder="Descrição"></textarea>
+                        <button id="saveNewCoin">Salvar</button>
+                    </div>
+                `;
+                document.querySelector('.tab-btn[data-tab="historia"]').click();
+                const modal = document.getElementById('coinModal'); modal.classList.add('show'); document.body.style.overflow='hidden';
+                document.getElementById('saveNewCoin').addEventListener('click', async function() {
+                    const payload = {
+                        name: document.getElementById('f_name').value,
+                        period: document.getElementById('f_period').value,
+                        region: document.getElementById('f_region').value,
+                        year: document.getElementById('f_year').value,
+                        description: document.getElementById('f_description').value,
+                        image_front: document.getElementById('f_image').value,
+                    };
+                    const headers = { 'Content-Type': 'application/json' };
+                    if (editorToken) headers['Authorization'] = 'Bearer ' + editorToken;
+                    const res = await fetch('/api/coins', { method: 'POST', headers, body: JSON.stringify(payload) });
+                    if (res.ok) { closeModal(); loadCoinsFromApi(); } else { alert('Erro ao salvar (verifique se está logado como editor).'); }
+                });
+            }
 
             function populateImagePanel(coin) {
                 const imgPanel = document.getElementById('imagem');
@@ -1003,6 +1184,8 @@
                     });
                 });
             }
+
+            
 
             // Abrir modal
             window.openModal = function(coinId) {
