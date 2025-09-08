@@ -57,23 +57,36 @@
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
 
-    .header-container {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0.5rem 1rem;
-      flex-wrap: wrap;
-      gap: 1rem;
-    }
+        .header-container {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0.5rem 1rem;
+            gap: 1rem;
+        }
+
+            /* Centro do header: barra de busca + nav alinhados */
+            .center-controls {
+                display: flex;
+                align-items: center;
+                gap: 1.25rem;
+                justify-self: center;
+                white-space: nowrap; /* evita quebra dos links */
+            }
+
+            /* Garante que a área de login fique à direita */
+            .login-area {
+                justify-self: end;
+            }
 
     .logo-container {
       display: flex;
       align-items: center;
       gap: 1rem;
-      flex: 0 1 auto;
-      min-width: 0;
+    flex: 0 1 auto;
+    min-width: 0; /* permite que o título cresça dentro do grid */
     }
 
     .logo-container img {
@@ -81,20 +94,23 @@
       width: auto;
     }
 
-    .site-title {
-      font-family: 'Nunito', sans-serif;
-      font-weight: 700;
-      color: var(--background);
-      font-size: 1.15rem;
-      margin-left: 1rem;
-      text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
-      white-space: nowrap;
-      max-width: 420px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      display: inline-block;
-      vertical-align: middle;
-    }
+        .site-title {
+            font-family: 'Nunito', sans-serif;
+            font-weight: 700;
+            color: var(--background);
+            font-size: 1.15rem;
+            margin-left: 0;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            /* permitir mostrar o título inteiro e centralizar linhas */
+            white-space: normal;
+            max-width: none;
+            overflow: visible;
+            text-overflow: clip;
+            display: block;
+            text-align: center;
+            line-height: 1.05;
+            margin-top: 0.2rem;
+        }
 
     /* Navegação */
     nav ul {
@@ -119,15 +135,15 @@
     }
 
     /* Barra de busca */
-    .search-bar {
-      background: rgba(255,255,255,0.1);
-      padding: 0.5rem;
-      border-radius: 4px;
-      width: 300px;
-      min-width: 200px;
-      z-index: 2;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.12);
-    }
+        .search-bar {
+            background: rgba(255,255,255,0.1);
+            padding: 0.5rem;
+            border-radius: 4px;
+            width: 260px;
+            min-width: 140px;
+            z-index: 2;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+        }
 
     .search-bar input {
       width: 100%;
@@ -142,6 +158,98 @@
     .search-bar input::placeholder {
       color: #888;
     }
+
+        /* Área de login (canto superior direito) */
+        .login-area {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            position: relative;
+            z-index: 10;
+            justify-self: end;
+        }
+
+        .login-btn {
+            background: transparent;
+            color: var(--background);
+            border: 1px solid rgba(255,255,255,0.14);
+            padding: 0.45rem 0.9rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: background 0.18s, color 0.18s, transform 0.12s;
+        }
+
+        .login-btn:hover {
+            background: rgba(255,255,255,0.08);
+            transform: translateY(-1px);
+        }
+
+        .login-dropdown {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            background: white;
+            color: var(--text);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            border-radius: 8px;
+            min-width: 220px;
+            padding: 0.75rem;
+            display: none;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .login-dropdown.show {
+            display: flex;
+        }
+
+        .login-dropdown input[type="text"],
+        .login-dropdown input[type="password"]{
+            padding: 0.5rem;
+            border: 1px solid #e6e6e6;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            width: 100%;
+        }
+
+        .login-dropdown .login-submit {
+            background: var(--primary);
+            color: var(--background);
+            border: none;
+            padding: 0.5rem 0.6rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 700;
+        }
+
+        /* Botões de edição para usuário autenticado */
+        .admin-controls {
+            display: flex;
+            gap: .5rem;
+            margin-top: .5rem;
+            justify-content: flex-end;
+        }
+
+        .admin-btn {
+            background: transparent;
+            border: 1px solid rgba(0,0,0,0.06);
+            padding: .35rem .6rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .admin-btn.primary {
+            background: var(--primary);
+            color: var(--background);
+        }
+
+        /* Responsividade: mover dropdown para centro quando coluna única */
+        @media (max-width: 768px) {
+            .login-dropdown { right: 50%; transform: translateX(50%); }
+        }
 
     /* Layout principal com sidebar */
     main {
@@ -534,6 +642,7 @@
         .site-title {
             font-size: 1.8rem;
         }
+    .logo-container .site-title { max-width: 100%; }
     }
 
     @media (max-width: 768px) {
@@ -558,6 +667,8 @@
         .logo-container {
             min-width: auto;
             justify-content: center;
+            flex-direction: column;
+            gap: 0.25rem;
         }
         
         .search-bar {
@@ -616,16 +727,30 @@
                 <h1 class="site-title">CATÁLOGO DE MOEDAS</h1>
             </div>
             
-            <div class="search-bar">
-                <input type="search" id="searchInput" placeholder="Buscar por nome, período ou país..." aria-label="Buscar moedas">
+            <div class="center-controls" style="display:flex;align-items:center;gap:1.25rem;justify-self:center;">
+                <div class="search-bar">
+                    <input type="search" id="searchInput" placeholder="Buscar por nome, período ou país..." aria-label="Buscar moedas">
+                </div>
+                <nav>
+                    <ul style="display:flex;gap:2rem;list-style:none;margin:0;padding:0;">
+                        <li><a href="#colecoes">Coleções</a></li>
+                        <li><a href="#sobre">Sobre</a></li>
+                    </ul>
+                </nav>
             </div>
-            
-            <nav>
-                <ul>
-                    <li><a href="#colecoes">Coleções</a></li>
-                    <li><a href="#sobre">Sobre</a></li>
-                </ul>
-            </nav>
+
+            <!-- Área de login adicionada -->
+            <div class="login-area" id="loginArea">
+                <button class="login-btn" id="loginToggle" aria-haspopup="true" aria-expanded="false">Entrar</button>
+                <div class="login-dropdown" id="loginDropdown" role="menu" aria-hidden="true">
+                    <label for="loginUser" style="font-size:0.85rem;color:#6b4a2a;font-weight:600">Usuário</label>
+                    <input id="loginUser" type="text" placeholder="Seu usuário" autocomplete="username">
+                    <label for="loginPass" style="font-size:0.85rem;color:#6b4a2a;font-weight:600">Senha</label>
+                    <input id="loginPass" type="password" placeholder="Senha" autocomplete="current-password">
+                    <button class="login-submit" id="loginSubmit">Entrar</button>
+                    <a href="#" style="font-size:0.8rem;color:var(--accent);text-decoration:none;text-align:right;display:block;margin-top:.25rem;">Esqueci a senha</a>
+                </div>
+            </div>
         </div>
     </header>
 
@@ -723,53 +848,179 @@
     <script>
         // JavaScript integrado para funcionalidade básica
         document.addEventListener('DOMContentLoaded', function() {
-            // Exemplo de dados de moedas
-            const coinsData = [
-                {
-                    id: 1,
-                    name: "Denário de Tiberio",
-                    period: "Império Romano",
-                    region: "Roma",
-                    year: "14-37 d.C.",
-                    image: "assets/coins/denario-tiberio.jpg",
-                    historia: "O denário foi a principal moeda de prata do Império Romano. Esta moeda específica foi cunhada durante o reinado do imperador Tibério.",
-                    contexto: "Esta é provavelmente a moeda mencionada em Mateus 22:19-21, quando Jesus disse 'Dai a César o que é de César'.",
-                    referencia: "Referência bíblica: Mateus 22:15-22, Marcos 12:13-17, Lucas 20:20-26"
-                },
-                {
-                    id: 2,
-                    name: "Siclo de Prata",
-                    period: "Primeira Revolta Judaica",
-                    region: "Jerusalém",
-                    year: "66-70 d.C.",
-                    image: "assets/coins/siclo-prata.jpg",
-                    historia: "Moeda cunhada durante a Primeira Revolta Judaica contra Roma, símbolo da resistência judaica.",
-                    contexto: "O siclo era a unidade monetária padrão mencionada em várias passagens bíblicas.",
-                    referencia: "Referência bíblica: Êxodo 21:32, Levítico 5:15, Números 3:47"
-                }
+            // cache local de moedas (preenchido via API ou via fallback local)
+            let coinsData = [];
+            let backendAvailable = true;
+
+            // amostra local usada quando não houver backend
+            const localSample = [
+                { id: 1, name: 'Denário Romano', period: 'Antigo', region: 'Roma', year: '-200', image: 'assets/coins/denario-tiberio.jpg', description: 'Denário da República Romana.' },
+                { id: 2, name: 'Moeda Portuguesa', period: 'Moderno', region: 'Portugal', year: '1910', image: 'assets/coins/siclo-prata.jpg', description: 'Centavo do início do século XX.' }
             ];
+
+            // Helpers: autenticação e fetch
+            function isLoggedIn() {
+                return !!localStorage.getItem('auth_token');
+            }
+
+            function isLocalAuth() {
+                return localStorage.getItem('auth_mode') === 'local';
+            }
+
+            async function fetchCoins() {
+                try {
+                    const res = await fetch('/api/coins');
+                    if (!res.ok) throw new Error('Erro ao buscar moedas');
+                    coinsData = await res.json();
+                    backendAvailable = true;
+                } catch (err) {
+                    console.warn('Backend não disponível, usando modo local:', err.message);
+                    backendAvailable = false;
+                    // tenta carregar do localStorage
+                    const local = localStorage.getItem('local_coins');
+                    coinsData = local ? JSON.parse(local) : localSample.slice();
+                }
+                renderCoins(coinsData);
+                renderFilters();
+            }
+
+            // Attach admin handlers (edit/delete/add)
+            function attachAdminHandlers() {
+                // add
+                const addBtn = document.getElementById('addCoinBtn');
+                if (addBtn) addBtn.addEventListener('click', openAddForm);
+
+                // edit / delete
+                document.querySelectorAll('.admin-controls .admin-btn').forEach(btn => {
+                    const action = btn.dataset.action;
+                    const id = btn.dataset.id;
+                    if (action === 'edit') btn.addEventListener('click', () => openEditForm(id));
+                    if (action === 'delete') btn.addEventListener('click', () => deleteCoin(id));
+                });
+            }
+
+            // Open edit form inline modal (simple prompt-based for now)
+            async function openEditForm(id) {
+                const coin = coinsData.find(c => +c.id === +id);
+                if (!coin) return alert('Moeda não encontrada');
+                // For simplicity use prompt for fields — could be replaced by a nicer modal form
+                const name = prompt('Nome:', coin.name) || coin.name;
+                const region = prompt('Região:', coin.region) || coin.region;
+                const period = prompt('Período:', coin.period) || coin.period;
+                const year = prompt('Ano / período:', coin.year) || coin.year;
+                const image_front = prompt('URL imagem (frente):', coin.image_front || coin.image) || (coin.image_front || coin.image);
+                const payload = { name, region, period, year, image_front };
+                await submitEdit(id, payload);
+            }
+
+            async function submitEdit(id, payload) {
+                try {
+                    if (backendAvailable) {
+                        const token = localStorage.getItem('auth_token');
+                        const res = await fetch(`/api/coins/${id}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                            body: JSON.stringify(payload)
+                        });
+                        if (!res.ok) throw new Error('Falha ao atualizar');
+                        const updated = await res.json();
+                        // atualizar cache
+                        coinsData = coinsData.map(c => c.id === updated.id ? updated : c);
+                    } else {
+                        // fallback local
+                        coinsData = coinsData.map(c => c.id === +id ? Object.assign({}, c, payload, { id: +id }) : c);
+                        localStorage.setItem('local_coins', JSON.stringify(coinsData));
+                    }
+                    renderCoins(coinsData);
+                } catch (err) {
+                    alert('Erro ao atualizar moeda: ' + err.message);
+                }
+            }
+
+            async function deleteCoin(id) {
+                if (!confirm('Confirma exclusão desta moeda?')) return;
+                try {
+                    if (backendAvailable) {
+                        const token = localStorage.getItem('auth_token');
+                        const res = await fetch(`/api/coins/${id}`, { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + token } });
+                        if (!res.ok) throw new Error('Falha ao excluir');
+                        // remover do cache
+                        coinsData = coinsData.filter(c => +c.id !== +id);
+                    } else {
+                        coinsData = coinsData.filter(c => +c.id !== +id);
+                        localStorage.setItem('local_coins', JSON.stringify(coinsData));
+                    }
+                    renderCoins(coinsData);
+                } catch (err) {
+                    alert('Erro ao excluir moeda: ' + err.message);
+                }
+            }
+
+            function openAddForm() {
+                // Using prompts for quick input — replace with modal if desired
+                const name = prompt('Nome da nova moeda:');
+                if (!name) return;
+                const region = prompt('Região:') || '';
+                const period = prompt('Período:') || '';
+                const year = prompt('Ano / período:') || '';
+                const image_front = prompt('URL imagem (frente):') || '';
+                submitAdd({ name, region, period, year, image_front });
+            }
+
+            async function submitAdd(payload) {
+                try {
+                    if (backendAvailable) {
+                        const token = localStorage.getItem('auth_token');
+                        const res = await fetch('/api/coins', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify(payload) });
+                        if (!res.ok) throw new Error('Falha ao criar');
+                        const created = await res.json();
+                        coinsData.push(created);
+                    } else {
+                        // atribui id novo local (max+1)
+                        const maxId = coinsData.reduce((m,c)=> Math.max(m, +c.id), 0);
+                        const created = Object.assign({ id: maxId + 1 }, payload);
+                        coinsData.push(created);
+                        localStorage.setItem('local_coins', JSON.stringify(coinsData));
+                    }
+                    renderCoins(coinsData);
+                } catch (err) {
+                    alert('Erro ao adicionar moeda: ' + err.message);
+                }
+            }
+
+            // inicializa dados a partir da API
+            fetchCoins();
 
             // Renderizar moedas
             function renderCoins(coins = coinsData) {
                 const grid = document.getElementById('coinsGrid');
+
+                // show add button if logged in
+                const token = localStorage.getItem('auth_token');
+                const isAdmin = !!token;
+                const addBtnHtml = isAdmin ? '<div style="grid-column:1/-1;display:flex;justify-content:flex-end;padding:0 2rem;"><button class="admin-btn primary" id="addCoinBtn">Adicionar Moeda</button></div>' : '';
                 
                 if (coins.length === 0) {
-                    grid.innerHTML = '<div class="empty-state"><h3>Nenhuma moeda encontrada</h3><p>Tente ajustar seus filtros de busca.</p></div>';
+                    grid.innerHTML = addBtnHtml + '<div class="empty-state"><h3>Nenhuma moeda encontrada</h3><p>Tente ajustar seus filtros de busca.</p></div>';
+                    if (isAdmin) attachAdminHandlers();
                     return;
                 }
                 
-                grid.innerHTML = coins.map(coin => `
-                    <div class="coin-card fade-in" onclick="openModal(${coin.id})">
-                        <img src="${coin.image}" alt="${coin.name}" class="coin-image" 
+                grid.innerHTML = addBtnHtml + coins.map(coin => `
+                    <div class="coin-card fade-in" data-id="${coin.id}">
+                        <img src="${coin.image || coin.image_front}" alt="${coin.name}" class="coin-image" 
                              onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjBGMEYwIi8+CjxjaXJjbGUgY3g9IjEwMCIgY3k9IjEwMCIgcj0iNDAiIHN0cm9rZT0iIzhCNDUxMyIgc3Ryb2tlLXdpZHRoPSIyIiBmaWxsPSJub25lIi8+Cjx0ZXh0IHg9IjEwMCIgeT0iMTA1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiM4QjQ1MTMiPk1vZWRhPC90ZXh0Pgo8L3N2Zz4K'">
                         <div class="coin-info">
                             <h3>${coin.name}</h3>
                             <p class="coin-period">${coin.period}</p>
                             <p><strong>Região:</strong> ${coin.region}</p>
                             <p><strong>Período:</strong> ${coin.year}</p>
+                            ${isAdmin ? `<div class="admin-controls"><button class="admin-btn" data-action="edit" data-id="${coin.id}">Editar</button><button class="admin-btn" data-action="delete" data-id="${coin.id}">Excluir</button></div>` : ''}
                         </div>
                     </div>
                 `).join('');
+
+                if (isAdmin) attachAdminHandlers();
             }
 
             // --- FILTROS INTERATIVOS ---
@@ -1090,8 +1341,102 @@
                 }
             });
 
-            // Renderização inicial
-            renderCoins();
+            // Renderização inicial é feita via fetchCoins()
+            
+            // Login dropdown: toggle e comportamento de fechamento ao clicar fora
+            (function() {
+                const toggle = document.getElementById('loginToggle');
+                const dropdown = document.getElementById('loginDropdown');
+
+                if (!toggle || !dropdown) return;
+
+                function openDropdown() {
+                    dropdown.classList.add('show');
+                    dropdown.setAttribute('aria-hidden', 'false');
+                    toggle.setAttribute('aria-expanded', 'true');
+                }
+                function closeDropdown() {
+                    dropdown.classList.remove('show');
+                    dropdown.setAttribute('aria-hidden', 'true');
+                    toggle.setAttribute('aria-expanded', 'false');
+                }
+
+                toggle.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    // if logged in and toggle currently 'Sair', perform logout instead of opening dropdown
+                    if (isLoggedIn() && toggle.textContent.trim() === 'Sair') {
+                        // remove both token and any local-mode marker so logout is clean
+                        localStorage.removeItem('auth_token');
+                        localStorage.removeItem('auth_mode');
+                        // ensure dropdown is closed and UI is refreshed
+                        closeDropdown();
+                        updateLoginToggle();
+                        // refresh coins (fire-and-forget is fine here)
+                        fetchCoins();
+                        return;
+                    }
+                    if (dropdown.classList.contains('show')) closeDropdown(); else openDropdown();
+                });
+
+                // fechar ao clicar fora
+                document.addEventListener('click', function(e) {
+                    const path = e.composedPath ? e.composedPath() : (e.path || []);
+                    if (!path.includes(dropdown) && !path.includes(toggle)) closeDropdown();
+                });
+
+                // ESC fecha
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') closeDropdown();
+                });
+
+                // handler do submit: autentica contra /api/login
+                const submit = document.getElementById('loginSubmit');
+                if (submit) {
+                    submit.addEventListener('click', async function(ev) {
+                        ev.preventDefault();
+                        const username = document.getElementById('loginUser').value.trim();
+                        const password = document.getElementById('loginPass').value;
+                        if (!username || !password) { alert('Informe usuário e senha.'); return; }
+                        try {
+                            if (!backendAvailable) {
+                                // modo local: aceita admin/admin
+                                if (username === 'admin' && password === 'admin') {
+                                    localStorage.setItem('auth_token', 'local');
+                                    localStorage.setItem('auth_mode', 'local');
+                                    closeDropdown();
+                                    updateLoginToggle();
+                                    fetchCoins();
+                                    return;
+                                }
+                                throw new Error('Credenciais inválidas (local)');
+                            }
+
+                            const res = await fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }) });
+                            if (!res.ok) {
+                                const err = await res.json().catch(() => ({}));
+                                throw new Error(err.detail || 'Credenciais inválidas');
+                            }
+                            const data = await res.json();
+                            localStorage.setItem('auth_token', data.token);
+                            localStorage.removeItem('auth_mode');
+                            closeDropdown();
+                            // atualiza botão e lista
+                            document.getElementById('loginToggle').textContent = 'Sair';
+                            await fetchCoins();
+                        } catch (err) {
+                            alert('Falha no login: ' + err.message);
+                        }
+                    });
+                }
+
+                // atualiza estado do toggle conforme login
+                function updateLoginToggle() {
+                    const t = document.getElementById('loginToggle');
+                    if (!t) return;
+                    t.textContent = isLoggedIn() ? 'Sair' : 'Entrar';
+                }
+                updateLoginToggle();
+            })();
             
             // --- NAV VIEW HANDLERS ---
             function showView(id) {

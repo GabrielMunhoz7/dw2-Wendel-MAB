@@ -10,6 +10,23 @@ import models
 # Create DB tables if they don't exist
 models.Base.metadata.create_all(bind=engine)
 
+# Ensure a default admin user exists so manual seeding is not required
+try:
+    db = SessionLocal()
+    if not db.query(models.User).filter(models.User.username == 'admin').first():
+        admin = models.User(username='admin')
+        admin.set_password('admin')
+        db.add(admin)
+        db.commit()
+        print('Created default admin user (username: admin, password: admin)')
+    db.close()
+except Exception as _e:
+    try:
+        db.rollback()
+    except Exception:
+        pass
+    print('Warning: could not ensure default admin user:', _e)
+
 app = Flask(__name__, static_folder=os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'frontend')))
 app.config['SECRET_KEY'] = 'change-me-to-a-secure-random-value'
 serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
