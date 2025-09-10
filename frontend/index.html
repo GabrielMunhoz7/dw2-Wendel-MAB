@@ -867,12 +867,64 @@
                 return localStorage.getItem('auth_mode') === 'local';
             }
 
+            // If user used the local fallback, allow syncing those local coins to server DB
+            async function syncLocalToServer() {
+                try {
+                    const raw = localStorage.getItem('local_coins');
+                    if (!raw) return;
+                    const locals = JSON.parse(raw);
+                    if (!Array.isArray(locals) || locals.length === 0) return;
+                    const token = localStorage.getItem('auth_token');
+                    if (!token) {
+                        console.info('Local coins present but no auth token; log in to sync them to the server.');
+                        return;
+                    }
+                    // post each local coin to server (basic de-dup handled by server if needed)
+                    for (const c of locals) {
+                        try {
+                            const payload = {
+                                name: c.name,
+                                period: c.period,
+                                region: c.region,
+                                year: c.year,
+                                material: c.material || c.material,
+                                denomination: c.denomination || c.denomination,
+                                description: c.historia || c.description || c.description || '',
+                                historia: c.historia || c.description || '',
+                                contexto: c.contexto || '',
+                                referencia: c.referencia || '',
+                                image_front: c.image_front || c.image || '',
+                                image_back: c.image_back || c.image_rev || ''
+                            };
+                            const res = await fetch('/api/coins', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify(payload) });
+                            if (res.ok) {
+                                const created = await res.json();
+                                // replace local coin in cache if exists
+                                coinsData = coinsData.filter(x => !(x.name === c.name && x.year === c.year));
+                                coinsData.push(created);
+                            } else {
+                                console.warn('Failed to sync a local coin:', await res.text());
+                            }
+                        } catch (err) {
+                            console.warn('Error syncing local coin', err);
+                        }
+                    }
+                    // all attempted - remove local stash
+                    localStorage.removeItem('local_coins');
+                    console.info('Local coins synced to server (or attempts made).');
+                } catch (err) {
+                    console.warn('syncLocalToServer error', err);
+                }
+            }
+
             async function fetchCoins() {
                 try {
                     const res = await fetch('/api/coins');
                     if (!res.ok) throw new Error('Erro ao buscar moedas');
                     coinsData = await res.json();
                     backendAvailable = true;
+                    // if there are local coins from offline usage, try to sync them into server DB
+                    await syncLocalToServer();
                 } catch (err) {
                     console.warn('Backend não disponível, usando modo local:', err.message);
                     backendAvailable = false;
@@ -894,8 +946,9 @@
                 document.querySelectorAll('.admin-controls .admin-btn').forEach(btn => {
                     const action = btn.dataset.action;
                     const id = btn.dataset.id;
-                    if (action === 'edit') btn.addEventListener('click', () => openEditForm(id));
-                    if (action === 'delete') btn.addEventListener('click', () => deleteCoin(id));
+                    // prevent admin buttons from opening the modal by stopping propagation
+                    if (action === 'edit') btn.addEventListener('click', (e) => { e.stopPropagation(); openEditForm(id); });
+                    if (action === 'delete') btn.addEventListener('click', (e) => { e.stopPropagation(); deleteCoin(id); });
                 });
             }
 
@@ -908,8 +961,14 @@
                 const region = prompt('Região:', coin.region) || coin.region;
                 const period = prompt('Período:', coin.period) || coin.period;
                 const year = prompt('Ano / período:', coin.year) || coin.year;
+                const material = prompt('Material:', coin.material || '') || coin.material || '';
+                const denomination = prompt('Denominação:', coin.denomination || '') || coin.denomination || '';
                 const image_front = prompt('URL imagem (frente):', coin.image_front || coin.image) || (coin.image_front || coin.image);
-                const payload = { name, region, period, year, image_front };
+                const image_back = prompt('URL imagem (verso):', coin.image_back || '') || (coin.image_back || '');
+                const historia = prompt('História:', coin.historia || coin.description || '') || (coin.historia || coin.description || '');
+                const contexto = prompt('Contexto Bíblico:', coin.contexto || '') || (coin.contexto || '');
+                const referencia = prompt('Referência Histórica:', coin.referencia || '') || (coin.referencia || '');
+                const payload = { name, region, period, year, material, denomination, image_front, image_back, historia, contexto, referencia };
                 await submitEdit(id, payload);
             }
 
@@ -963,8 +1022,14 @@
                 const region = prompt('Região:') || '';
                 const period = prompt('Período:') || '';
                 const year = prompt('Ano / período:') || '';
+                const material = prompt('Material:') || '';
+                const denomination = prompt('Denominação:') || '';
                 const image_front = prompt('URL imagem (frente):') || '';
-                submitAdd({ name, region, period, year, image_front });
+                const image_back = prompt('URL imagem (verso):') || '';
+                const historia = prompt('História:') || '';
+                const contexto = prompt('Contexto Bíblico:') || '';
+                const referencia = prompt('Referência Histórica:') || '';
+                submitAdd({ name, region, period, year, material, denomination, image_front, image_back, historia, contexto, referencia });
             }
 
             async function submitAdd(payload) {
@@ -1021,6 +1086,23 @@
                 `).join('');
 
                 if (isAdmin) attachAdminHandlers();
+                // Attach interaction handlers to coin cards so clicking/keyboard opens the modal
+                document.querySelectorAll('.coin-card').forEach(card => {
+                    // click opens modal
+                    card.addEventListener('click', function() {
+                        const id = parseInt(this.getAttribute('data-id') || this.getAttribute('data-coin-id'));
+                        if (!isNaN(id)) window.openModal(id);
+                    });
+                    // keyboard accessibility: Enter or Space
+                    card.setAttribute('tabindex', '0');
+                    card.addEventListener('keydown', function(e) {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            const id = parseInt(this.getAttribute('data-id') || this.getAttribute('data-coin-id'));
+                            if (!isNaN(id)) window.openModal(id);
+                        }
+                    });
+                });
             }
 
             // --- FILTROS INTERATIVOS ---
@@ -1267,12 +1349,15 @@
 
                 modalTitle.textContent = coin.name;
 
-                // Preencher conteúdo das abas
-                document.getElementById('historia').innerHTML = `<p>${coin.historia}</p>`;
-                document.getElementById('contexto').innerHTML = `<p>${coin.contexto}</p>`;
-                document.getElementById('referencia').innerHTML = `<p>${coin.referencia}</p>`;
+                // Preencher conteúdo das abas (fallback para description)
+                document.getElementById('historia').innerHTML = `<p>${coin.historia || coin.description || ''}</p>`;
+                document.getElementById('contexto').innerHTML = `<p>${coin.contexto || ''}</p>`;
+                document.getElementById('referencia').innerHTML = `<p>${coin.referencia || ''}</p>`;
 
                 // populate image only if the imagem tab is active
+                // adapt to new image field names (image_front / image_back)
+                coin.image = coin.image_front || coin.image || coin.image_front;
+                coin.image_rev = coin.image_back || coin.image_back || coin.image_back;
                 populateImagePanel(coin);
 
                 // abrir modal e bloquear scroll do body

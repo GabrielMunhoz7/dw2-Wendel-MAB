@@ -13,7 +13,12 @@ class Coin(Base):
     material = Column(String, nullable=True)
     denomination = Column(String, nullable=True)
     year = Column(String, nullable=True)
+    # historical narrative (história), context and reference fields
     description = Column(String, nullable=True)
+    historia = Column(String, nullable=True)
+    contexto = Column(String, nullable=True)
+    referencia = Column(String, nullable=True)
+    # image fields
     image_front = Column(String, nullable=True)
     image_back = Column(String, nullable=True)
 
@@ -23,15 +28,16 @@ class Coin(Base):
             f"region={self.region}, material={self.material})>"
         )
 
-    class User(Base):
-        __tablename__ = 'users'
 
-        id = Column(Integer, primary_key=True, index=True)
-        username = Column(String, unique=True, index=True, nullable=False)
-        password_hash = Column(String, nullable=False)
+class User(Base):
+    __tablename__ = 'users'
 
-        def set_password(self, password: str):
-            self.password_hash = generate_password_hash(password)
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True, nullable=False)
+    password_hash = Column(String, nullable=False)
 
-        def check_password(self, password: str) -> bool:
-            return check_password_hash(self.password_hash, password)
+    def set_password(self, password: str):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password: str) -> bool:
+        return check_password_hash(self.password_hash, password)

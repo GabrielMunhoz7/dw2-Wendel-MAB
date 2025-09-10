@@ -10,6 +10,41 @@ import models
 # Create DB tables if they don't exist
 models.Base.metadata.create_all(bind=engine)
 
+# Ensure expected columns exist (useful when upgrading an existing SQLite DB)
+def ensure_columns_exist():
+    try:
+        conn = engine.connect()
+        # get existing columns
+        res = conn.execute("PRAGMA table_info('coins')").fetchall()
+        existing = {r[1] for r in res}
+        # desired columns and their SQL types
+        desired = {
+            'historia': 'TEXT',
+            'contexto': 'TEXT',
+            'referencia': 'TEXT',
+            'material': 'TEXT',
+            'denomination': 'TEXT',
+            'image_front': 'TEXT',
+            'image_back': 'TEXT',
+            'description': 'TEXT'
+        }
+        for col, typ in desired.items():
+            if col not in existing:
+                try:
+                    conn.execute(f"ALTER TABLE coins ADD COLUMN {col} {typ}")
+                    print(f"Added column {col} to coins table")
+                except Exception as e:
+                    print(f"Could not add column {col}: {e}")
+    except Exception as e:
+        print('Could not ensure columns:', e)
+    finally:
+        try:
+            conn.close()
+        except Exception:
+            pass
+
+ensure_columns_exist()
+
 # Ensure a default admin user exists so manual seeding is not required
 try:
     db = SessionLocal()
@@ -90,7 +125,10 @@ def get_coin(coin_id):
 def create_coin():
     payload = request.get_json() or {}
     db = next(get_db())
-    coin = models.Coin(**payload)
+    # sanitize payload: only allow known fields
+    allowed = ['name', 'period', 'region', 'material', 'denomination', 'year', 'description', 'historia', 'contexto', 'referencia', 'image_front', 'image_back']
+    data = {k: payload.get(k) for k in allowed if k in payload}
+    coin = models.Coin(**data)
     db.add(coin)
     db.commit()
     db.refresh(coin)
@@ -107,8 +145,10 @@ def update_coin(coin_id):
     coin = db.query(models.Coin).filter(models.Coin.id == coin_id).first()
     if not coin:
         abort(404)
+    # only update allowed fields
+    allowed = ['name', 'period', 'region', 'material', 'denomination', 'year', 'description', 'historia', 'contexto', 'referencia', 'image_front', 'image_back']
     for k, v in payload.items():
-        if hasattr(coin, k):
+        if k in allowed:
             setattr(coin, k, v)
     db.commit()
     db.refresh(coin)
