@@ -1,201 +1,168 @@
-from flask import Flask, jsonify, request, send_from_directory, abort
-from sqlalchemy.orm import Session
 import os
-from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
-from functools import wraps
+import bcrypt
+from flask import Flask, request, jsonify, send_from_directory
+from flask_cors import CORS
+from sqlalchemy.orm import Session
+from itsdangerous import URLSafeTimedSerializer
+import json
 
 from database import SessionLocal, engine
-import models
+from models import Base, User, Coin
 
-# Create DB tables if they don't exist
-models.Base.metadata.create_all(bind=engine)
+# Criar tabelas se não existirem
+Base.metadata.create_all(bind=engine)
 
-# Ensure expected columns exist (useful when upgrading an existing SQLite DB)
-def ensure_columns_exist():
-    try:
-        conn = engine.connect()
-        # get existing columns
-        res = conn.execute("PRAGMA table_info('coins')").fetchall()
-        existing = {r[1] for r in res}
-        # desired columns and their SQL types
-        desired = {
-            'historia': 'TEXT',
-            'contexto': 'TEXT',
-            'referencia': 'TEXT',
-            'material': 'TEXT',
-            'denomination': 'TEXT',
-            'image_front': 'TEXT',
-            'image_back': 'TEXT',
-            'description': 'TEXT'
-        }
-        for col, typ in desired.items():
-            if col not in existing:
-                try:
-                    conn.execute(f"ALTER TABLE coins ADD COLUMN {col} {typ}")
-                    print(f"Added column {col} to coins table")
-                except Exception as e:
-                    print(f"Could not add column {col}: {e}")
-    except Exception as e:
-        print('Could not ensure columns:', e)
-    finally:
-        try:
-            conn.close()
-        except Exception:
-            pass
+app = Flask(__name__)
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'sua-chave-secreta-super-forte')
 
-ensure_columns_exist()
+# Configurar CORS
+allowed_origins = os.environ.get('ALLOWED_ORIGINS', 'http://localhost:3000,http://127.0.0.1:5000').split(',')
+CORS(app, origins=allowed_origins)
 
-# Ensure a default admin user exists so manual seeding is not required
-try:
-    db = SessionLocal()
-    if not db.query(models.User).filter(models.User.username == 'admin').first():
-        admin = models.User(username='admin')
-        admin.set_password('admin')
-        db.add(admin)
-        db.commit()
-        print('Created default admin user (username: admin, password: admin)')
-    db.close()
-except Exception as _e:
-    try:
-        db.rollback()
-    except Exception:
-        pass
-    print('Warning: could not ensure default admin user:', _e)
-
-app = Flask(__name__, static_folder=os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'frontend')))
-app.config['SECRET_KEY'] = 'change-me-to-a-secure-random-value'
+# Serializador para tokens
 serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
-
 
 def get_db():
     db = SessionLocal()
     try:
-        yield db
+        return db
     finally:
         db.close()
 
-
-@app.route('/api/coins', methods=['GET'])
-def list_coins():
-    db = next(get_db())
-    coins = db.query(models.Coin).all()
-    result = [c.__dict__.copy() for c in coins]
-    # remove _sa_instance_state
-    for r in result:
-        r.pop('_sa_instance_state', None)
-    return jsonify(result)
-
-
-def verify_token(token: str):
+def create_admin_if_not_exists():
+    """Criar usuário admin se não existir"""
+    db = SessionLocal()
     try:
-        data = serializer.loads(token, max_age=60*60*24)  # 1 day
-        return data.get('username')
-    except (BadSignature, SignatureExpired):
-        return None
+        admin = db.query(User).filter(User.username == 'admin').first()
+        if not admin:
+            password_hash = bcrypt.hashpw('admin123'.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+            admin = User(username='admin', password_hash=password_hash, role='admin')
+            db.add(admin)
+            db.commit()
+            print("✅ Usuário admin criado com sucesso")
+        else:
+            print("✅ Usuário admin já existe")
+    except Exception as e:
+        print(f"❌ Erro ao criar admin: {e}")
+    finally:
+        db.close()
 
-
-def login_required(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        auth = request.headers.get('Authorization')
-        if not auth or not auth.startswith('Bearer '):
-            return jsonify({'detail': 'Authentication required'}), 401
-        token = auth.split(' ', 1)[1]
-        user = verify_token(token)
-        if not user:
-            return jsonify({'detail': 'Invalid or expired token'}), 401
-        return f(*args, **kwargs)
-    return decorated
-
-
-@app.route('/api/coins/<int:coin_id>', methods=['GET'])
-def get_coin(coin_id):
-    db = next(get_db())
-    coin = db.query(models.Coin).filter(models.Coin.id == coin_id).first()
-    if not coin:
-        abort(404)
-    data = coin.__dict__.copy()
-    data.pop('_sa_instance_state', None)
-    return jsonify(data)
-
-
-@app.route('/api/coins', methods=['POST'])
-@app.route('/api/coins', methods=['POST'])
-@login_required
-def create_coin():
-    payload = request.get_json() or {}
-    db = next(get_db())
-    # sanitize payload: only allow known fields
-    allowed = ['name', 'period', 'region', 'material', 'denomination', 'year', 'description', 'historia', 'contexto', 'referencia', 'image_front', 'image_back']
-    data = {k: payload.get(k) for k in allowed if k in payload}
-    coin = models.Coin(**data)
-    db.add(coin)
-    db.commit()
-    db.refresh(coin)
-    data = coin.__dict__.copy(); data.pop('_sa_instance_state', None)
-    return jsonify(data), 201
-
-
-@app.route('/api/coins/<int:coin_id>', methods=['PUT'])
-@app.route('/api/coins/<int:coin_id>', methods=['PUT'])
-@login_required
-def update_coin(coin_id):
-    payload = request.get_json() or {}
-    db = next(get_db())
-    coin = db.query(models.Coin).filter(models.Coin.id == coin_id).first()
-    if not coin:
-        abort(404)
-    # only update allowed fields
-    allowed = ['name', 'period', 'region', 'material', 'denomination', 'year', 'description', 'historia', 'contexto', 'referencia', 'image_front', 'image_back']
-    for k, v in payload.items():
-        if k in allowed:
-            setattr(coin, k, v)
-    db.commit()
-    db.refresh(coin)
-    data = coin.__dict__.copy(); data.pop('_sa_instance_state', None)
-    return jsonify(data)
-
-
-@app.route('/api/coins/<int:coin_id>', methods=['DELETE'])
-@app.route('/api/coins/<int:coin_id>', methods=['DELETE'])
-@login_required
-def delete_coin(coin_id):
-    db = next(get_db())
-    coin = db.query(models.Coin).filter(models.Coin.id == coin_id).first()
-    if not coin:
-        abort(404)
-    db.delete(coin)
-    db.commit()
-    return jsonify({'ok': True})
-
-
+# Rotas da API
 @app.route('/api/login', methods=['POST'])
 def login():
-    payload = request.get_json() or {}
-    username = payload.get('username')
-    password = payload.get('password')
-    if not username or not password:
-        return jsonify({'detail': 'username and password required'}), 400
+    data = request.json
+    username = data.get('username')
+    password = data.get('password')
+    
+    db = SessionLocal()
+    try:
+        user = db.query(User).filter(User.username == username).first()
+        if user and bcrypt.checkpw(password.encode('utf-8'), user.password_hash.encode('utf-8')):
+            token = serializer.dumps({'user_id': user.id, 'username': user.username})
+            return jsonify({'success': True, 'token': token})
+        else:
+            return jsonify({'success': False, 'message': 'Credenciais inválidas'}), 401
+    finally:
+        db.close()
 
-    db = next(get_db())
-    user = db.query(models.User).filter(models.User.username == username).first()
-    if not user or not user.check_password(password):
-        return jsonify({'detail': 'invalid credentials'}), 401
+@app.route('/api/coins', methods=['GET'])
+def get_coins():
+    db = SessionLocal()
+    try:
+        coins = db.query(Coin).all()
+        return jsonify([{
+            'id': c.id,
+            'name': c.name,
+            'period': c.period,
+            'region': c.region,
+            'material': c.material,
+            'denomination': c.denomination,
+            'year': c.year,
+            'description': c.description,
+            'historia': c.historia,
+            'contexto': c.contexto,
+            'referencia': c.referencia,
+            'image_front': c.image_front,
+            'image_back': c.image_back
+        } for c in coins])
+    finally:
+        db.close()
 
-    token = serializer.dumps({'username': username})
-    return jsonify({'token': token})
+@app.route('/api/coins', methods=['POST'])
+def create_coin():
+    # Verificar token
+    token = request.headers.get('Authorization', '').replace('Bearer ', '')
+    try:
+        data = serializer.loads(token, max_age=86400)  # 24 horas
+    except:
+        return jsonify({'error': 'Token inválido'}), 401
+    
+    coin_data = request.json
+    db = SessionLocal()
+    try:
+        coin = Coin(**coin_data)
+        db.add(coin)
+        db.commit()
+        db.refresh(coin)
+        return jsonify({'id': coin.id, 'message': 'Moeda criada com sucesso'})
+    finally:
+        db.close()
 
+@app.route('/api/coins/<int:coin_id>', methods=['PUT'])
+def update_coin(coin_id):
+    # Verificar token
+    token = request.headers.get('Authorization', '').replace('Bearer ', '')
+    try:
+        data = serializer.loads(token, max_age=86400)
+    except:
+        return jsonify({'error': 'Token inválido'}), 401
+    
+    coin_data = request.json
+    db = SessionLocal()
+    try:
+        coin = db.query(Coin).filter(Coin.id == coin_id).first()
+        if not coin:
+            return jsonify({'error': 'Moeda não encontrada'}), 404
+        
+        for key, value in coin_data.items():
+            setattr(coin, key, value)
+        
+        db.commit()
+        return jsonify({'message': 'Moeda atualizada com sucesso'})
+    finally:
+        db.close()
 
-# Serve frontend static files
-@app.route('/', defaults={'path': ''})
-@app.route('/<path:path>')
-def serve_frontend(path):
-    static_dir = app.static_folder
-    if path != '' and os.path.exists(os.path.join(static_dir, path)):
-        return send_from_directory(static_dir, path)
-    return send_from_directory(static_dir, 'index.html')
+@app.route('/api/coins/<int:coin_id>', methods=['DELETE'])
+def delete_coin(coin_id):
+    # Verificar token
+    token = request.headers.get('Authorization', '').replace('Bearer ', '')
+    try:
+        data = serializer.loads(token, max_age=86400)
+    except:
+        return jsonify({'error': 'Token inválido'}), 401
+    
+    db = SessionLocal()
+    try:
+        coin = db.query(Coin).filter(Coin.id == coin_id).first()
+        if not coin:
+            return jsonify({'error': 'Moeda não encontrada'}), 404
+        
+        db.delete(coin)
+        db.commit()
+        return jsonify({'message': 'Moeda removida com sucesso'})
+    finally:
+        db.close()
 
+# Servir arquivos estáticos (frontend)
+@app.route('/')
+def serve_frontend():
+    return send_from_directory('../frontend', 'index.html')
+
+@app.route('/<path:filename>')
+def serve_static(filename):
+    return send_from_directory('../frontend', filename)
 
 if __name__ == '__main__':
-    # debug server for development
-    app.run(host='127.0.0.1', port=5000, debug=True)
+    create_admin_if_not_exists()
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)
