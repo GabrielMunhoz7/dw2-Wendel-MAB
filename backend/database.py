@@ -1,7 +1,6 @@
 import os
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, declarative_base
 
 # Pegar URL do banco das variáveis de ambiente
 DATABASE_URL = os.environ.get("DATABASE_URL")
