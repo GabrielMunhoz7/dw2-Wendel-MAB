@@ -1,13 +1,4 @@
-backend/
-frontend/README.md
-README.md
-ChatIA.md
-DEPLOY_GUIDE.md
-runtime.txt
-*.pyc
-__pycache__/
-.env
-.env.local
-node_modules/
-.DS_Store
-.git/
+*
+!api/
+!frontend/
+!vercel.json
