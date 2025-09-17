@@ -1,25 +1,8 @@
 {
-  "functions": {
-    "api/index.py": {
-      "runtime": "python3.9"
-    }
-  },
   "rewrites": [
     {
       "source": "/api/(.*)",
       "destination": "/api"
-    },
-    {
-      "source": "/assets/(.*)",
-      "destination": "/frontend/assets/$1"
-    },
-    {
-      "source": "/js/(.*)",
-      "destination": "/frontend/js/$1"
-    },
-    {
-      "source": "/styles.css",
-      "destination": "/frontend/styles.css"
     },
     {
       "source": "/(.*)",

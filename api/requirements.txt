@@ -1,6 +1,8 @@
-Flask==2.2.5
-SQLAlchemy==1.4.46
-psycopg2-binary==2.9.3
+Flask==2.2.2Flask==2.2.5
+
+psycopg2-binary==2.9.3SQLAlchemy==1.4.46
+
+flask-cors==3.0.10psycopg2-binary==2.9.3
 flask-cors==3.0.10
 bcrypt==3.2.2
 python-dotenv==0.21.1
