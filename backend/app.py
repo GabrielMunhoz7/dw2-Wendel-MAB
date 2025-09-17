@@ -162,7 +162,18 @@ def serve_frontend():
 def serve_static(filename):
     return send_from_directory('../frontend', filename)
 
-if __name__ == '__main__':
+# Handler para Vercel
+def handler(request):
+    return app
+
+# Criar admin se não existir (para ambiente local)
+def init_app():
     create_admin_if_not_exists()
+
+if __name__ == '__main__':
+    init_app()
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
+else:
+    # Para produção (Vercel), criar admin na inicialização
+    init_app()
