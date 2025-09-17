@@ -1,5 +1,6 @@
-Flask==2.2.2Flask==2.2.5
+Flask==2.2.2Flask==2.2.2Flask==2.2.5
 
+flask-cors==3.0.10
 psycopg2-binary==2.9.3SQLAlchemy==1.4.46
 
 flask-cors==3.0.10psycopg2-binary==2.9.3
