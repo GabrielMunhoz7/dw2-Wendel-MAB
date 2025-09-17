@@ -1,4 +1,6 @@
-*
-!api/
-!frontend/
-!vercel.json
+frontend/
+README.md
+ChatIA.md
+DEPLOY_GUIDE.md
+.vscode/
+.git/

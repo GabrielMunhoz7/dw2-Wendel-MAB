@@ -1,0 +1,1603 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CATÁLOGO DE MOEDAS</title>
+    <!-- Importação de fontes diretamente no HTML para garantir carregamento -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+    /* Variáveis de cores */
+    :root {
+    --primary: #58311e;    /* bronze metálico */
+      --secondary: #DAA520;  /* dourado */
+      --accent: #CD853F;     /* bronze */
+      --background: #FDF5E6; /* bege claro */
+      --text: #2F1B14;      /* marrom escuro */
+    }
+
+    /* Reset básico */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Nunito', sans-serif;
+      background-color: var(--background);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* Títulos principais com fonte elegante */
+    h1, h2, h3.coin-title {
+      font-family: 'Nunito', sans-serif;
+      font-weight: 700;
+    }
+
+    h1 {
+      font-size: 1.2rem;
+      color: var(--background);
+    }
+
+    h2 {
+      color: var(--primary);
+      font-size: 1.8rem;
+    }
+
+    /* Header e Navegação */
+    header {
+      background: var(--primary);
+      padding: 1rem 0;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+        .header-container {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0.5rem 1rem;
+            gap: 1rem;
+        }
+
+            /* Centro do header: barra de busca + nav alinhados */
+            .center-controls {
+                display: flex;
+                align-items: center;
+                gap: 1.25rem;
+                justify-self: center;
+                white-space: nowrap; /* evita quebra dos links */
+            }
+
+            /* Garante que a área de login fique à direita */
+            .login-area {
+                justify-self: end;
+            }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    flex: 0 1 auto;
+    min-width: 0; /* permite que o título cresça dentro do grid */
+    }
+
+    .logo-container img {
+      height: 50px;
+      width: auto;
+    }
+
+        .site-title {
+            font-family: 'Nunito', sans-serif;
+            font-weight: 700;
+            color: var(--background);
+            font-size: 1.15rem;
+            margin-left: 0;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            /* permitir mostrar o título inteiro e centralizar linhas */
+            white-space: normal;
+            max-width: none;
+            overflow: visible;
+            text-overflow: clip;
+            display: block;
+            text-align: center;
+            line-height: 1.05;
+            margin-top: 0.2rem;
+        }
+
+    /* Navegação */
+    nav ul {
+        display: flex;
+        gap: 2rem;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    nav a {
+        color: var(--background);
+        text-decoration: none;
+        font-weight: 600;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        transition: background-color 0.3s;
+    }
+
+    nav a:hover {
+        background-color: var(--accent);
+    }
+
+    /* Barra de busca */
+        .search-bar {
+            background: rgba(255,255,255,0.1);
+            padding: 0.5rem;
+            border-radius: 4px;
+            width: 260px;
+            min-width: 140px;
+            z-index: 2;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+        }
+
+    .search-bar input {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid var(--accent);
+      border-radius: 4px;
+      background: white;
+      font-size: 1rem;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .search-bar input::placeholder {
+      color: #888;
+    }
+
+        /* Área de login (canto superior direito) */
+        .login-area {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            position: relative;
+            z-index: 10;
+            justify-self: end;
+        }
+
+        .login-btn {
+            background: transparent;
+            color: var(--background);
+            border: 1px solid rgba(255,255,255,0.14);
+            padding: 0.45rem 0.9rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: background 0.18s, color 0.18s, transform 0.12s;
+        }
+
+        .login-btn:hover {
+            background: rgba(255,255,255,0.08);
+            transform: translateY(-1px);
+        }
+
+        .login-dropdown {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            background: white;
+            color: var(--text);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            border-radius: 8px;
+            min-width: 220px;
+            padding: 0.75rem;
+            display: none;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .login-dropdown.show {
+            display: flex;
+        }
+
+        .login-dropdown input[type="text"],
+        .login-dropdown input[type="password"]{
+            padding: 0.5rem;
+            border: 1px solid #e6e6e6;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            width: 100%;
+        }
+
+        .login-dropdown .login-submit {
+            background: var(--primary);
+            color: var(--background);
+            border: none;
+            padding: 0.5rem 0.6rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 700;
+        }
+
+        /* Botões de edição para usuário autenticado */
+        .admin-controls {
+            display: flex;
+            gap: .5rem;
+            margin-top: .5rem;
+            justify-content: flex-end;
+        }
+
+        .admin-btn {
+            background: transparent;
+            border: 1px solid rgba(0,0,0,0.06);
+            padding: .35rem .6rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .admin-btn.primary {
+            background: var(--primary);
+            color: var(--background);
+        }
+
+        /* Responsividade: mover dropdown para centro quando coluna única */
+        @media (max-width: 768px) {
+            .login-dropdown { right: 50%; transform: translateX(50%); }
+        }
+
+    /* Layout principal com sidebar */
+    main {
+        display: grid;
+        grid-template-columns: 250px 1fr;
+        gap: 2rem;
+        max-width: 1400px;
+        margin: 2rem auto;
+        padding: 0 2rem;
+    }
+
+    .filters {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        height: fit-content;
+    }
+
+    .filters h2 {
+        font-family: 'Cormorant Garamond', serif;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 1.5rem;
+        font-size: 1.5rem;
+    }
+
+    .filters section {
+        margin-bottom: 1.5rem;
+    }
+
+    .filters h3 {
+        font-size: 1rem;
+        margin-bottom: 0.5rem;
+        color: var(--text);
+        font-weight: 600;
+        font-family: 'Inter', sans-serif;
+    }
+
+    /* Grid de moedas */
+    .coins-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 2rem;
+      padding: 2rem;
+      min-height: 400px;
+    }
+
+    .coin-card {
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      transition: transform 0.3s, box-shadow 0.3s;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      cursor: pointer;
+    }
+
+    .coin-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+
+    .coin-image {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      background: #f0f0f0;
+    }
+
+    .coin-info {
+        padding: 1rem;
+    }
+
+    .coin-info h3 {
+        font-family: 'Cormorant Garamond', serif;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 0.5rem;
+        font-size: 1.2rem;
+    }
+
+    .coin-info p {
+        color: var(--text);
+        font-size: 0.9rem;
+        margin-bottom: 0.3rem;
+    }
+
+    .coin-period {
+        color: var(--accent);
+        font-weight: 600;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* Modal */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s, visibility 0.3s;
+    }
+
+    .modal.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal-content {
+      background: var(--background);
+      padding: 2rem;
+      border-radius: 8px;
+      max-width: 800px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+      position: relative;
+      transform: scale(0.8);
+      transition: transform 0.3s;
+    }
+
+    .modal.show .modal-content {
+      transform: scale(1);
+    }
+
+    /* Botões padronizados de fechar (modal de moeda e modal de views) */
+    .close-modal,
+    .close-view-modal {
+        position: absolute;
+        right: 1rem;
+        top: 1rem;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--background);
+        color: var(--text);
+        border: 1px solid rgba(0,0,0,0.08);
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1rem;
+        line-height: 1;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+        transition: transform 0.12s ease, background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+    }
+
+    .close-modal svg,
+    .close-view-modal svg {
+        width: 16px;
+        height: 16px;
+        display: block;
+        stroke: currentColor;
+        fill: none;
+    }
+
+    .close-modal:hover,
+    .close-view-modal:hover {
+        transform: scale(1.06);
+        background: var(--accent);
+        color: #fff;
+        border-color: rgba(0,0,0,0.12);
+    }
+
+    .close-modal:focus,
+    .close-view-modal:focus {
+        outline: 3px solid rgba(205,133,63,0.24);
+        outline-offset: 2px;
+    }
+
+    .modal-tabs {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .tab-btn {
+        padding: 0.75rem 1.5rem;
+        background: none;
+        border: none;
+        border-bottom: 3px solid transparent;
+        cursor: pointer;
+        font-family: 'Inter', sans-serif;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s;
+        color: #666;
+    }
+
+    .tab-btn.active {
+        border-bottom-color: var(--accent);
+        color: var(--primary);
+    }
+
+    .tab-btn:hover:not(.active) {
+        color: var(--accent);
+    }
+
+    .tab-content {
+        min-height: 300px;
+        padding: 1rem 0;
+    }
+
+    .tab-panel {
+    display: none;
+    position: relative;
+    overflow: hidden; /* ensure panels clip their children (image zoom won't overflow into other panels) */
+    }
+
+    .tab-panel.active {
+        display: block;
+    }
+
+    /* Imagem da moeda - painel e zoom */
+    .image-panel {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 1rem 0;
+        /* ensure image area is isolated and centered */
+        gap: 1rem;
+    }
+    /* wrapper keeps the image centered and clips the scaled image */
+    .img-wrapper {
+        width: 320px;
+        max-width: 70%;
+        background: #f5f5f5;
+        border-radius: 8px;
+        padding: 1.25rem;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden; /* clip zoom */
+        margin: 0 auto;
+    }
+
+    .image-panel img {
+        width: 100%;
+        height: auto;
+        display: block;
+        transition: transform 0.28s cubic-bezier(.2,.9,.2,1);
+        cursor: zoom-in;
+        border-radius: 6px;
+        transform-origin: center center;
+    }
+
+    .image-panel img.zoomed {
+        transform: scale(2);
+        cursor: zoom-out;
+    }
+
+    /* Two-up layout for obverse/reverse */
+    .img-pair {
+        display: flex;
+        gap: 1.25rem;
+        justify-content: center;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        width: 100%;
+    }
+
+    .img-block {
+        width: 320px;
+        max-width: 46%;
+        min-width: 220px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .pan-container {
+        width: 100%;
+        height: 320px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        overflow: hidden; /* clip while panning/zooming */
+        border-radius: 8px;
+        background: #f5f5f5;
+    }
+
+    .pan-container img {
+        transform-origin: center center;
+        transition: transform 0.12s ease-out;
+        touch-action: none; /* we'll handle pointer dragging */
+        cursor: grab;
+        user-select: none;
+        -webkit-user-drag: none;
+        max-width: none; /* allow scaling beyond container */
+        width: auto;
+        height: auto;
+        max-height: 100%;
+    }
+
+    .img-controls {
+        display:flex;
+        gap:.5rem;
+        align-items:center;
+        justify-content:center;
+    }
+
+    .img-controls button {
+        background: var(--primary);
+        color: white;
+        border: none;
+        padding: .35rem .6rem;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+
+    .img-controls input[type=range] {
+        width: 120px;
+    }
+
+    .img-label {
+        font-size: .9rem;
+        color: #6b4a2a;
+        margin-top: .25rem;
+    }
+
+    /* Estados de carregamento */
+    .loading {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 200px;
+        color: var(--accent);
+        font-size: 1.1rem;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: var(--accent);
+    }
+
+    .empty-state h3 {
+        font-family: 'Cormorant Garamond', serif;
+        color: var(--primary);
+        margin-bottom: 1rem;
+    }
+
+    /* Imagens responsivas */
+    img {
+        max-width: 100%;
+        height: auto;
+    }
+
+    /* Acessibilidade */
+    :focus {
+      outline: 3px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    button:focus,
+    input:focus,
+    a:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    /* Animações */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .fade-in {
+      animation: fadeIn 0.4s ease-out;
+    }
+
+    /* Media Queries */
+    @media (max-width: 1024px) {
+        main {
+            grid-template-columns: 200px 1fr;
+        }
+        
+        .site-title {
+            font-size: 1.8rem;
+        }
+    .logo-container .site-title { max-width: 100%; }
+    }
+
+    @media (max-width: 768px) {
+        main {
+            grid-template-columns: 1fr;
+        }
+        
+        .filters {
+            margin-bottom: 2rem;
+        }
+        
+        .coins-grid {
+            grid-template-columns: repeat(2, 1fr);
+            padding: 1rem;
+        }
+        
+        .header-container {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .logo-container {
+            min-width: auto;
+            justify-content: center;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        
+        .search-bar {
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        .site-title {
+            font-size: 1.5rem;
+            margin-left: 0;
+            margin-top: 0.5rem;
+        }
+
+        nav ul {
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .modal-tabs {
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .tab-btn {
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .coins-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .site-title {
+            font-size: 1.3rem;
+        }
+
+        .header-container {
+            padding: 1rem;
+        }
+
+        .modal-content {
+            padding: 1rem;
+            margin: 1rem;
+        }
+    }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <div class="logo-container">
+                <img src="assets/museum-logo.png" alt="Logo do MAB e UNASP" onerror="this.style.display='none'">
+                <h1 class="site-title">CATÁLOGO DE MOEDAS</h1>
+            </div>
+            
+            <div class="center-controls" style="display:flex;align-items:center;gap:1.25rem;justify-self:center;">
+                <div class="search-bar">
+                    <input type="search" id="searchInput" placeholder="Buscar por nome, período ou país..." aria-label="Buscar moedas">
+                </div>
+                <nav>
+                    <ul style="display:flex;gap:2rem;list-style:none;margin:0;padding:0;">
+                        <li><a href="#colecoes">Coleções</a></li>
+                        <li><a href="#sobre">Sobre</a></li>
+                    </ul>
+                </nav>
+            </div>
+
+            <!-- Área de login adicionada -->
+            <div class="login-area" id="loginArea">
+                <button class="login-btn" id="loginToggle" aria-haspopup="true" aria-expanded="false">Entrar</button>
+                <div class="login-dropdown" id="loginDropdown" role="menu" aria-hidden="true">
+                    <label for="loginUser" style="font-size:0.85rem;color:#6b4a2a;font-weight:600">Usuário</label>
+                    <input id="loginUser" type="text" placeholder="Seu usuário" autocomplete="username">
+                    <label for="loginPass" style="font-size:0.85rem;color:#6b4a2a;font-weight:600">Senha</label>
+                    <input id="loginPass" type="password" placeholder="Senha" autocomplete="current-password">
+                    <button class="login-submit" id="loginSubmit">Entrar</button>
+                    <a href="#" style="font-size:0.8rem;color:var(--accent);text-decoration:none;text-align:right;display:block;margin-top:.25rem;">Esqueci a senha</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main id="inicio" class="view">
+        <aside class="filters">
+            <h2>Filtros</h2>
+            <section>
+                <h3>Período Histórico</h3>
+                <div id="period-filters">
+                    <!-- Filtros serão inseridos via JavaScript -->
+                </div>
+            </section>
+            <section>
+                <h3>Região</h3>
+                <div id="region-filters">
+                    <!-- Filtros serão inseridos via JavaScript -->
+                </div>
+            </section>
+        </aside>
+
+        <section class="coins-grid" id="coinsGrid">
+            <div class="loading">Carregando moedas...</div>
+        </section>
+    </main>
+
+    <!-- Seções adicionais para navegação (Coleções / Sobre) -->
+    <section id="colecoes" class="view" hidden>
+        <div class="container" style="padding:2rem; max-width:1200px; margin:0 auto;">
+            <h2 style="color:var(--primary); font-family: 'Nunito', sans-serif;">Coleções Temáticas</h2>
+            <p>Agrupamentos por períodos e temas. Exemplo de coleções abaixo.</p>
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap:1rem; margin-top:1rem;">
+                <div style="background:white;padding:1rem;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.08);">
+                    <h3 style="margin:0 0 .5rem;color:var(--primary);">Roma Antiga</h3>
+                    <p>Moedas do período imperial e republicano.</p>
+                </div>
+                <div style="background:white;padding:1rem;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.08);">
+                    <h3 style="margin:0 0 .5rem;color:var(--primary);">Império Bizantino</h3>
+                    <p>Moedas de ouro e bronze do período bizantino.</p>
+                </div>
+                <div style="background:white;padding:1rem;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.08);">
+                    <h3 style="margin:0 0 .5rem;color:var(--primary);">Período Bíblico</h3>
+                    <p>Moedas relacionadas a contextos bíblicos e arqueológicos.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="sobre" class="view" hidden>
+        <div class="container" style="padding:2rem; max-width:900px; margin:0 auto;">
+            <h2 style="color:var(--primary); font-family: 'Nunito', sans-serif;">Sobre o Catálogo</h2>
+            <p>Este catálogo é um protótipo para a exposição do Museu. Curadoria e dados são fictícios para demonstração. Aqui podem ser adicionadas informações institucionais, contatos e políticas de uso.</p>
+        </div>
+    </section>
+
+    <!-- Template do Modal -->
+            <div id="coinModal" class="modal" role="dialog" aria-labelledby="modal-title" aria-hidden="true">
+        <div class="modal-content">
+            <button class="close-modal" aria-label="Fechar modal">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6L18 18M6 18L18 6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <h2 id="modal-title" style="margin-bottom: 1rem;">Detalhes da Moeda</h2>
+            <div class="modal-tabs">
+                <button class="tab-btn active" data-tab="imagem" role="tab" aria-selected="true">Imagem</button>
+                <button class="tab-btn" data-tab="historia" role="tab" aria-selected="false">História</button>
+                <button class="tab-btn" data-tab="contexto" role="tab" aria-selected="false">Contexto Bíblico</button>
+                <button class="tab-btn" data-tab="referencia" role="tab" aria-selected="false">Referência Histórica</button>
+            </div>
+            <div class="tab-content">
+                <div id="imagem" class="tab-panel active image-panel" role="tabpanel">
+                    <!-- imagem será inserida via JavaScript -->
+                </div>
+                <div id="historia" class="tab-panel" role="tabpanel">
+                    <!-- Conteúdo será inserido via JavaScript -->
+                </div>
+                <div id="contexto" class="tab-panel" role="tabpanel">
+                    <!-- Conteúdo será inserido via JavaScript -->
+                </div>
+                <div id="referencia" class="tab-panel" role="tabpanel">
+                    <!-- Conteúdo será inserido via JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+        <!-- Modal para exibir views (Coleções / Sobre) -->
+        <div id="viewModal" class="modal" role="dialog" aria-hidden="true">
+            <div class="modal-content" id="viewModalContent">
+                    <button class="close-view-modal" aria-label="Fechar">
+                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6L18 18M6 18L18 6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </button>
+                <div id="viewModalBody"></div>
+            </div>
+        </div>
+
+    <script>
+        // JavaScript integrado para funcionalidade básica
+        document.addEventListener('DOMContentLoaded', function() {
+            // Configuração da URL da API
+            const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+                ? '' 
+                : 'https://SEU-BACKEND-URL.up.railway.app';
+
+            // cache local de moedas (preenchido via API ou via fallback local)
+            let coinsData = [];
+            let backendAvailable = true;
+
+            // amostra local usada quando não houver backend
+            const localSample = [
+                { id: 1, name: 'Denário Romano', period: 'Antigo', region: 'Roma', year: '-200', image: 'assets/coins/denario-tiberio.jpg', description: 'Denário da República Romana.' },
+                { id: 2, name: 'Moeda Portuguesa', period: 'Moderno', region: 'Portugal', year: '1910', image: 'assets/coins/siclo-prata.jpg', description: 'Centavo do início do século XX.' }
+            ];
+
+            // Helpers: autenticação e fetch
+            function isLoggedIn() {
+                return !!localStorage.getItem('auth_token');
+            }
+
+            function isLocalAuth() {
+                return localStorage.getItem('auth_mode') === 'local';
+            }
+
+            // If user used the local fallback, allow syncing those local coins to server DB
+            async function syncLocalToServer() {
+                try {
+                    const raw = localStorage.getItem('local_coins');
+                    if (!raw) return;
+                    const locals = JSON.parse(raw);
+                    if (!Array.isArray(locals) || locals.length === 0) return;
+                    const token = localStorage.getItem('auth_token');
+                    if (!token) {
+                        console.info('Local coins present but no auth token; log in to sync them to the server.');
+                        return;
+                    }
+                    // post each local coin to server (basic de-dup handled by server if needed)
+                    for (const c of locals) {
+                        try {
+                            const payload = {
+                                name: c.name,
+                                period: c.period,
+                                region: c.region,
+                                year: c.year,
+                                material: c.material || c.material,
+                                denomination: c.denomination || c.denomination,
+                                description: c.historia || c.description || c.description || '',
+                                historia: c.historia || c.description || '',
+                                contexto: c.contexto || '',
+                                referencia: c.referencia || '',
+                                image_front: c.image_front || c.image || '',
+                                image_back: c.image_back || c.image_rev || ''
+                            };
+                            const res = await fetch(`${API_BASE_URL}/api/coins`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify(payload) });
+                            if (res.ok) {
+                                const created = await res.json();
+                                // replace local coin in cache if exists
+                                coinsData = coinsData.filter(x => !(x.name === c.name && x.year === c.year));
+                                coinsData.push(created);
+                            } else {
+                                console.warn('Failed to sync a local coin:', await res.text());
+                            }
+                        } catch (err) {
+                            console.warn('Error syncing local coin', err);
+                        }
+                    }
+                    // all attempted - remove local stash
+                    localStorage.removeItem('local_coins');
+                    console.info('Local coins synced to server (or attempts made).');
+                } catch (err) {
+                    console.warn('syncLocalToServer error', err);
+                }
+            }
+
+            async function fetchCoins() {
+                try {
+                    const res = await fetch(`${API_BASE_URL}/api/coins`);
+                    if (!res.ok) throw new Error('Erro ao buscar moedas');
+                    coinsData = await res.json();
+                    backendAvailable = true;
+                    // if there are local coins from offline usage, try to sync them into server DB
+                    await syncLocalToServer();
+                } catch (err) {
+                    console.warn('Backend não disponível, usando modo local:', err.message);
+                    backendAvailable = false;
+                    // tenta carregar do localStorage
+                    const local = localStorage.getItem('local_coins');
+                    coinsData = local ? JSON.parse(local) : localSample.slice();
+                }
+                renderCoins(coinsData);
+                renderFilters();
+            }
+
+            // Attach admin handlers (edit/delete/add)
+            function attachAdminHandlers() {
+                // add
+                const addBtn = document.getElementById('addCoinBtn');
+                if (addBtn) addBtn.addEventListener('click', openAddForm);
+
+                // edit / delete
+                document.querySelectorAll('.admin-controls .admin-btn').forEach(btn => {
+                    const action = btn.dataset.action;
+                    const id = btn.dataset.id;
+                    // prevent admin buttons from opening the modal by stopping propagation
+                    if (action === 'edit') btn.addEventListener('click', (e) => { e.stopPropagation(); openEditForm(id); });
+                    if (action === 'delete') btn.addEventListener('click', (e) => { e.stopPropagation(); deleteCoin(id); });
+                });
+            }
+
+            // Open edit form inline modal (simple prompt-based for now)
+            async function openEditForm(id) {
+                const coin = coinsData.find(c => +c.id === +id);
+                if (!coin) return alert('Moeda não encontrada');
+                // For simplicity use prompt for fields — could be replaced by a nicer modal form
+                const name = prompt('Nome:', coin.name) || coin.name;
+                const region = prompt('Região:', coin.region) || coin.region;
+                const period = prompt('Período:', coin.period) || coin.period;
+                const year = prompt('Ano / período:', coin.year) || coin.year;
+                const material = prompt('Material:', coin.material || '') || coin.material || '';
+                const denomination = prompt('Denominação:', coin.denomination || '') || coin.denomination || '';
+                const image_front = prompt('URL imagem (frente):', coin.image_front || coin.image) || (coin.image_front || coin.image);
+                const image_back = prompt('URL imagem (verso):', coin.image_back || '') || (coin.image_back || '');
+                const historia = prompt('História:', coin.historia || coin.description || '') || (coin.historia || coin.description || '');
+                const contexto = prompt('Contexto Bíblico:', coin.contexto || '') || (coin.contexto || '');
+                const referencia = prompt('Referência Histórica:', coin.referencia || '') || (coin.referencia || '');
+                const payload = { name, region, period, year, material, denomination, image_front, image_back, historia, contexto, referencia };
+                await submitEdit(id, payload);
+            }
+
+            async function submitEdit(id, payload) {
+                try {
+                    if (backendAvailable) {
+                        const token = localStorage.getItem('auth_token');
+                        const res = await fetch(`${API_BASE_URL}/api/coins/${id}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                            body: JSON.stringify(payload)
+                        });
+                        if (!res.ok) throw new Error('Falha ao atualizar');
+                        const updated = await res.json();
+                        // atualizar cache
+                        coinsData = coinsData.map(c => c.id === updated.id ? updated : c);
+                    } else {
+                        // fallback local
+                        coinsData = coinsData.map(c => c.id === +id ? Object.assign({}, c, payload, { id: +id }) : c);
+                        localStorage.setItem('local_coins', JSON.stringify(coinsData));
+                    }
+                    renderCoins(coinsData);
+                } catch (err) {
+                    alert('Erro ao atualizar moeda: ' + err.message);
+                }
+            }
+
+            async function deleteCoin(id) {
+                if (!confirm('Confirma exclusão desta moeda?')) return;
+                try {
+                    if (backendAvailable) {
+                        const token = localStorage.getItem('auth_token');
+                        const res = await fetch(`${API_BASE_URL}/api/coins/${id}`, { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + token } });
+                        if (!res.ok) throw new Error('Falha ao excluir');
+                        // remover do cache
+                        coinsData = coinsData.filter(c => +c.id !== +id);
+                    } else {
+                        coinsData = coinsData.filter(c => +c.id !== +id);
+                        localStorage.setItem('local_coins', JSON.stringify(coinsData));
+                    }
+                    renderCoins(coinsData);
+                } catch (err) {
+                    alert('Erro ao excluir moeda: ' + err.message);
+                }
+            }
+
+            function openAddForm() {
+                // Using prompts for quick input — replace with modal if desired
+                const name = prompt('Nome da nova moeda:');
+                if (!name) return;
+                const region = prompt('Região:') || '';
+                const period = prompt('Período:') || '';
+                const year = prompt('Ano / período:') || '';
+                const material = prompt('Material:') || '';
+                const denomination = prompt('Denominação:') || '';
+                const image_front = prompt('URL imagem (frente):') || '';
+                const image_back = prompt('URL imagem (verso):') || '';
+                const historia = prompt('História:') || '';
+                const contexto = prompt('Contexto Bíblico:') || '';
+                const referencia = prompt('Referência Histórica:') || '';
+                submitAdd({ name, region, period, year, material, denomination, image_front, image_back, historia, contexto, referencia });
+            }
+
+            async function submitAdd(payload) {
+                try {
+                    if (backendAvailable) {
+                        const token = localStorage.getItem('auth_token');
+                        const res = await fetch(`${API_BASE_URL}/api/coins`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify(payload) });
+                        if (!res.ok) throw new Error('Falha ao criar');
+                        const created = await res.json();
+                        coinsData.push(created);
+                    } else {
+                        // atribui id novo local (max+1)
+                        const maxId = coinsData.reduce((m,c)=> Math.max(m, +c.id), 0);
+                        const created = Object.assign({ id: maxId + 1 }, payload);
+                        coinsData.push(created);
+                        localStorage.setItem('local_coins', JSON.stringify(coinsData));
+                    }
+                    renderCoins(coinsData);
+                } catch (err) {
+                    alert('Erro ao adicionar moeda: ' + err.message);
+                }
+            }
+
+            // inicializa dados a partir da API
+            fetchCoins();
+
+            // Renderizar moedas
+            function renderCoins(coins = coinsData) {
+                const grid = document.getElementById('coinsGrid');
+
+                // show add button if logged in
+                const token = localStorage.getItem('auth_token');
+                const isAdmin = !!token;
+                const addBtnHtml = isAdmin ? '<div style="grid-column:1/-1;display:flex;justify-content:flex-end;padding:0 2rem;"><button class="admin-btn primary" id="addCoinBtn">Adicionar Moeda</button></div>' : '';
+                
+                if (coins.length === 0) {
+                    grid.innerHTML = addBtnHtml + '<div class="empty-state"><h3>Nenhuma moeda encontrada</h3><p>Tente ajustar seus filtros de busca.</p></div>';
+                    if (isAdmin) attachAdminHandlers();
+                    return;
+                }
+                
+                grid.innerHTML = addBtnHtml + coins.map(coin => `
+                    <div class="coin-card fade-in" data-id="${coin.id}">
+                        <img src="${coin.image || coin.image_front}" alt="${coin.name}" class="coin-image" 
+                             onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjBGMEYwIi8+CjxjaXJjbGUgY3g9IjEwMCIgY3k9IjEwMCIgcj0iNDAiIHN0cm9rZT0iIzhCNDUxMyIgc3Ryb2tlLXdpZHRoPSIyIiBmaWxsPSJub25lIi8+Cjx0ZXh0IHg9IjEwMCIgeT0iMTA1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiM4QjQ1MTMiPk1vZWRhPC90ZXh0Pgo8L3N2Zz4K'">
+                        <div class="coin-info">
+                            <h3>${coin.name}</h3>
+                            <p class="coin-period">${coin.period}</p>
+                            <p><strong>Região:</strong> ${coin.region}</p>
+                            <p><strong>Período:</strong> ${coin.year}</p>
+                            ${isAdmin ? `<div class="admin-controls"><button class="admin-btn" data-action="edit" data-id="${coin.id}">Editar</button><button class="admin-btn" data-action="delete" data-id="${coin.id}">Excluir</button></div>` : ''}
+                        </div>
+                    </div>
+                `).join('');
+
+                if (isAdmin) attachAdminHandlers();
+                // Attach interaction handlers to coin cards so clicking/keyboard opens the modal
+                document.querySelectorAll('.coin-card').forEach(card => {
+                    // click opens modal
+                    card.addEventListener('click', function() {
+                        const id = parseInt(this.getAttribute('data-id') || this.getAttribute('data-coin-id'));
+                        if (!isNaN(id)) window.openModal(id);
+                    });
+                    // keyboard accessibility: Enter or Space
+                    card.setAttribute('tabindex', '0');
+                    card.addEventListener('keydown', function(e) {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            const id = parseInt(this.getAttribute('data-id') || this.getAttribute('data-coin-id'));
+                            if (!isNaN(id)) window.openModal(id);
+                        }
+                    });
+                });
+            }
+
+            // --- FILTROS INTERATIVOS ---
+            function getUniqueValues(key) {
+                return Array.from(new Set(coinsData.map(c => c[key]).filter(Boolean))).sort();
+            }
+            
+            function renderFilters() {
+                const periods = getUniqueValues('period');
+                const regions = getUniqueValues('region');
+                const periodContainer = document.getElementById('period-filters');
+                const regionContainer = document.getElementById('region-filters');
+    
+                periodContainer.innerHTML = periods.map(p => {
+                    const cnt = coinsData.filter(c => c.period === p).length;
+                    return `
+                    <label style="display:block;margin-bottom:0.5rem;">
+                        <input type="checkbox" name="period" value="${p}"> ${p} <span class="filter-count" style="color:var(--accent);font-weight:600">(${cnt})</span>
+                    </label>
+                `
+                }).join('');
+    
+                regionContainer.innerHTML = regions.map(r => {
+                    const cnt = coinsData.filter(c => c.region === r).length;
+                    return `
+                    <label style="display:block;margin-bottom:0.5rem;">
+                        <input type="checkbox" name="region" value="${r}"> ${r} <span class="filter-count" style="color:var(--accent);font-weight:600">(${cnt})</span>
+                    </label>
+                `
+                }).join('');
+    
+                // adicionar listeners (individual) e delegação em container para maior robustez
+                Array.from(document.querySelectorAll('#period-filters input, #region-filters input'))
+                    .forEach(cb => cb.addEventListener('change', applyFilters));
+
+                // delegation: catch clicks/changes at the container level
+                periodContainer.addEventListener('change', applyFilters);
+                periodContainer.addEventListener('click', function(e) {
+                    // if label text was clicked, ensure filter updates
+                    if (e.target && e.target.tagName === 'LABEL') applyFilters();
+                });
+                regionContainer.addEventListener('change', applyFilters);
+                regionContainer.addEventListener('click', function(e) {
+                    if (e.target && e.target.tagName === 'LABEL') applyFilters();
+                });
+
+                // initial counts and sync
+                updateFilterCounts();
+                applyFilters();
+            }
+    
+            function getCheckedValues(name) {
+                return Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map(i => i.value);
+            }
+    
+            function applyFilters() {
+                const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+                const selectedPeriods = getCheckedValues('period');
+                const selectedRegions = getCheckedValues('region');
+    
+                const filtered = coinsData.filter(coin => {
+                    const matchSearch = !searchTerm || coin.name.toLowerCase().includes(searchTerm) || coin.period.toLowerCase().includes(searchTerm) || coin.region.toLowerCase().includes(searchTerm);
+                    const matchPeriod = selectedPeriods.length === 0 || selectedPeriods.includes(coin.period);
+                    const matchRegion = selectedRegions.length === 0 || selectedRegions.includes(coin.region);
+                    return matchSearch && matchPeriod && matchRegion;
+                });
+    
+                renderCoins(filtered);
+                updateFilterCounts(filtered);
+            }
+    
+            function updateFilterCounts(filteredList = coinsData) {
+                // atualiza contadores simples ao lado de cada filtro
+                document.querySelectorAll('#period-filters label').forEach(label => {
+                    const inp = label.querySelector('input');
+                    const val = inp.value;
+                    const count = filteredList.filter(c => c.period === val).length;
+                    const span = label.querySelector('.filter-count');
+                    if (span) span.textContent = `(${count})`;
+                });
+    
+                document.querySelectorAll('#region-filters label').forEach(label => {
+                    const inp = label.querySelector('input');
+                    const val = inp.value;
+                    const count = filteredList.filter(c => c.region === val).length;
+                    const span = label.querySelector('.filter-count');
+                    if (span) span.textContent = `(${count})`;
+                });
+            }
+    
+            // substituir listener de busca para usar applyFilters
+            document.getElementById('searchInput').addEventListener('input', function() {
+                applyFilters();
+            });
+    
+            // renderizar filtros iniciais
+            renderFilters();
+    
+            // track which coin is currently open so we can populate image only when needed
+            let currentOpenCoin = null;
+
+            function populateImagePanel(coin) {
+                const imgPanel = document.getElementById('imagem');
+                // if the imagem panel is not active, do not insert the image
+                if (!imgPanel.classList.contains('active')) {
+                    imgPanel.innerHTML = '';
+                    return;
+                }
+
+                if (!coin) {
+                    imgPanel.innerHTML = '';
+                    return;
+                }
+                // We expect coin.image to be the obverse; if coin has image_rev use as reverse
+                const placeholder = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjBGMEYwIi8+CjxjaXJjbGUgY3g9IjEwMCIgY3k9IjEwMCIgcj0iNDAiIHN0cm9rZT0iIzhCNDUxMyIgc3Ryb2tlLXdpZHRoPSIyIiBmaWxsPSJub25lIi8+Cjx0ZXh0IHg9IjEwMCIgeT0iMTA1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiM4QjQ1MTMiPk1vZWRhPC90ZXh0Pgo8L3N2Zz4K";
+
+                const obv = coin.image || placeholder;
+                const rev = coin.image_rev || placeholder;
+
+                const imgHtml = `
+                    <div class="img-pair">
+                        <div class="img-block">
+                            <div class="pan-container" data-side="cara">
+                                <img src="${obv}" alt="${coin.name} - Cara" onerror="this.src='${placeholder}'" />
+                            </div>
+                            <div class="img-label">Cara</div>
+                            <div class="img-controls">
+                                <button data-action="zoom-out">-</button>
+                                <input type="range" min="1" max="5" step="0.1" value="1" data-role="zoom-range">
+                                <button data-action="zoom-in">+</button>
+                            </div>
+                        </div>
+                        <div class="img-block">
+                            <div class="pan-container" data-side="coroa">
+                                <img src="${rev}" alt="${coin.name} - Coroa" onerror="this.src='${placeholder}'" />
+                            </div>
+                            <div class="img-label">Coroa</div>
+                            <div class="img-controls">
+                                <button data-action="zoom-out">-</button>
+                                <input type="range" min="1" max="5" step="0.1" value="1" data-role="zoom-range">
+                                <button data-action="zoom-in">+</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                imgPanel.innerHTML = imgHtml;
+
+                // wire up interactions for both pan-containers
+                const blocks = imgPanel.querySelectorAll('.img-block');
+                blocks.forEach(block => {
+                    const pan = block.querySelector('.pan-container');
+                    const img = pan.querySelector('img');
+                    const range = block.querySelector('input[data-role="zoom-range"]');
+                    const btnIn = block.querySelector('button[data-action="zoom-in"]');
+                    const btnOut = block.querySelector('button[data-action="zoom-out"]');
+
+                    // state
+                    let scale = parseFloat(range.value) || 1;
+                    let originX = 0, originY = 0;
+                    let posX = 0, posY = 0; // translate
+                    let dragging = false;
+                    let startX = 0, startY = 0;
+
+                    function applyTransform() {
+                        img.style.transform = `translate(${posX}px, ${posY}px) scale(${scale})`;
+                    }
+
+                    // range control
+                    range.addEventListener('input', function() {
+                        scale = parseFloat(this.value);
+                        // clamp
+                        scale = Math.max(1, Math.min(5, scale));
+                        applyTransform();
+                    });
+
+                    btnIn.addEventListener('click', function() {
+                        scale = Math.min(5, +(Math.round((scale + 0.5) * 10) / 10));
+                        range.value = scale;
+                        applyTransform();
+                    });
+                    btnOut.addEventListener('click', function() {
+                        scale = Math.max(1, +(Math.round((scale - 0.5) * 10) / 10));
+                        range.value = scale;
+                        // reset position when zoom returns to 1
+                        if (scale === 1) { posX = posY = 0; }
+                        applyTransform();
+                    });
+
+                    // wheel to zoom (ctrl + wheel or wheel alone)
+                    pan.addEventListener('wheel', function(e) {
+                        e.preventDefault();
+                        const delta = -e.deltaY || e.wheelDelta;
+                        const step = delta > 0 ? 0.1 : -0.1;
+                        scale = Math.max(1, Math.min(8, +(Math.round((scale + step) * 10) / 10)));
+                        range.value = scale;
+                        applyTransform();
+                    }, { passive: false });
+
+                    // pointer drag for panning
+                    pan.addEventListener('pointerdown', function(e) {
+                        if (scale <= 1) return; // no pan when not zoomed
+                        dragging = true;
+                        pan.setPointerCapture(e.pointerId);
+                        startX = e.clientX - posX;
+                        startY = e.clientY - posY;
+                        img.style.cursor = 'grabbing';
+                    });
+
+                    pan.addEventListener('pointermove', function(e) {
+                        if (!dragging) return;
+                        posX = e.clientX - startX;
+                        posY = e.clientY - startY;
+                        applyTransform();
+                    });
+
+                    pan.addEventListener('pointerup', function(e) {
+                        dragging = false;
+                        try { pan.releasePointerCapture(e.pointerId); } catch (err) {}
+                        img.style.cursor = 'grab';
+                    });
+
+                    pan.addEventListener('pointercancel', function(e) {
+                        dragging = false;
+                        try { pan.releasePointerCapture(e.pointerId); } catch (err) {}
+                        img.style.cursor = 'grab';
+                    });
+
+                    // double click resets to 1x and center
+                    img.addEventListener('dblclick', function() {
+                        scale = 1; posX = 0; posY = 0; range.value = 1; applyTransform();
+                    });
+                });
+            }
+
+            // Abrir modal
+            window.openModal = function(coinId) {
+                const coin = coinsData.find(c => c.id === coinId);
+                if (!coin) return;
+
+                currentOpenCoin = coin;
+
+                const modal = document.getElementById('coinModal');
+                const modalTitle = document.getElementById('modal-title');
+
+                modalTitle.textContent = coin.name;
+
+                // Preencher conteúdo das abas (fallback para description)
+                document.getElementById('historia').innerHTML = `<p>${coin.historia || coin.description || ''}</p>`;
+                document.getElementById('contexto').innerHTML = `<p>${coin.contexto || ''}</p>`;
+                document.getElementById('referencia').innerHTML = `<p>${coin.referencia || ''}</p>`;
+
+                // populate image only if the imagem tab is active
+                // adapt to new image field names (image_front / image_back)
+                coin.image = coin.image_front || coin.image || coin.image_front;
+                coin.image_rev = coin.image_back || coin.image_back || coin.image_back;
+                populateImagePanel(coin);
+
+                // abrir modal e bloquear scroll do body
+                modal.classList.add('show');
+                modal.setAttribute('aria-hidden', 'false');
+                document.body.style.overflow = 'hidden';
+            };
+
+            // Fechar modal
+            function closeModal() {
+                const modal = document.getElementById('coinModal');
+                // remover zoom se houver
+                const img = document.getElementById('coinImage');
+                if (img) img.classList.remove('zoomed');
+                // clear image panel
+                const imgPanel = document.getElementById('imagem');
+                if (imgPanel) imgPanel.innerHTML = '';
+                modal.classList.remove('show');
+                modal.setAttribute('aria-hidden', 'true');
+                // restaurar scroll do body
+                document.body.style.overflow = '';
+            }
+
+            // Event listeners
+            document.querySelector('.close-modal').addEventListener('click', closeModal);
+            
+            document.getElementById('coinModal').addEventListener('click', function(e) {
+                if (e.target === this) closeModal();
+            });
+
+            // Navegação das abas
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const tabId = this.dataset.tab;
+                    
+                        // Atualizar botões
+                        document.querySelectorAll('.tab-btn').forEach(b => {
+                            b.classList.remove('active');
+                            b.setAttribute('aria-selected', 'false');
+                        });
+                        this.classList.add('active');
+                        this.setAttribute('aria-selected', 'true');
+
+                        // Atualizar painéis
+                        document.querySelectorAll('.tab-panel').forEach(panel => {
+                            panel.classList.remove('active');
+                        });
+                        const targetPanel = document.getElementById(tabId);
+                        targetPanel.classList.add('active');
+
+                        // If imagem tab became active, populate the image panel; otherwise clear it
+                        if (tabId === 'imagem') {
+                            populateImagePanel(currentOpenCoin);
+                        } else {
+                            // clear image to avoid it visually leaking into other panels
+                            const imgPanel = document.getElementById('imagem');
+                            if (imgPanel) imgPanel.innerHTML = '';
+                        }
+                });
+            });
+
+            // Tecla ESC para fechar modal
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeModal();
+                }
+            });
+
+            // Renderização inicial é feita via fetchCoins()
+            
+            // Login dropdown: toggle e comportamento de fechamento ao clicar fora
+            (function() {
+                const toggle = document.getElementById('loginToggle');
+                const dropdown = document.getElementById('loginDropdown');
+
+                if (!toggle || !dropdown) return;
+
+                function openDropdown() {
+                    dropdown.classList.add('show');
+                    dropdown.setAttribute('aria-hidden', 'false');
+                    toggle.setAttribute('aria-expanded', 'true');
+                }
+                function closeDropdown() {
+                    dropdown.classList.remove('show');
+                    dropdown.setAttribute('aria-hidden', 'true');
+                    toggle.setAttribute('aria-expanded', 'false');
+                }
+
+                toggle.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    // if logged in and toggle currently 'Sair', perform logout instead of opening dropdown
+                    if (isLoggedIn() && toggle.textContent.trim() === 'Sair') {
+                        // remove both token and any local-mode marker so logout is clean
+                        localStorage.removeItem('auth_token');
+                        localStorage.removeItem('auth_mode');
+                        // ensure dropdown is closed and UI is refreshed
+                        closeDropdown();
+                        updateLoginToggle();
+                        // refresh coins (fire-and-forget is fine here)
+                        fetchCoins();
+                        return;
+                    }
+                    if (dropdown.classList.contains('show')) closeDropdown(); else openDropdown();
+                });
+
+                // fechar ao clicar fora
+                document.addEventListener('click', function(e) {
+                    const path = e.composedPath ? e.composedPath() : (e.path || []);
+                    if (!path.includes(dropdown) && !path.includes(toggle)) closeDropdown();
+                });
+
+                // ESC fecha
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') closeDropdown();
+                });
+
+                // handler do submit: autentica contra /api/login
+                const submit = document.getElementById('loginSubmit');
+                if (submit) {
+                    submit.addEventListener('click', async function(ev) {
+                        ev.preventDefault();
+                        const username = document.getElementById('loginUser').value.trim();
+                        const password = document.getElementById('loginPass').value;
+                        if (!username || !password) { alert('Informe usuário e senha.'); return; }
+                        try {
+                            if (!backendAvailable) {
+                                // modo local: aceita admin/admin
+                                if (username === 'admin' && password === 'admin') {
+                                    localStorage.setItem('auth_token', 'local');
+                                    localStorage.setItem('auth_mode', 'local');
+                                    closeDropdown();
+                                    updateLoginToggle();
+                                    fetchCoins();
+                                    return;
+                                }
+                                throw new Error('Credenciais inválidas (local)');
+                            }
+
+                            const res = await fetch(`${API_BASE_URL}/api/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }) });
+                            if (!res.ok) {
+                                const err = await res.json().catch(() => ({}));
+                                throw new Error(err.detail || 'Credenciais inválidas');
+                            }
+                            const data = await res.json();
+                            localStorage.setItem('auth_token', data.token);
+                            localStorage.removeItem('auth_mode');
+                            closeDropdown();
+                            // atualiza botão e lista
+                            document.getElementById('loginToggle').textContent = 'Sair';
+                            await fetchCoins();
+                        } catch (err) {
+                            alert('Falha no login: ' + err.message);
+                        }
+                    });
+                }
+
+                // atualiza estado do toggle conforme login
+                function updateLoginToggle() {
+                    const t = document.getElementById('loginToggle');
+                    if (!t) return;
+                    t.textContent = isLoggedIn() ? 'Sair' : 'Entrar';
+                }
+                updateLoginToggle();
+            })();
+            
+            // --- NAV VIEW HANDLERS ---
+            function showView(id) {
+                const target = document.getElementById(id);
+                if (!target) return;
+
+                // clonar o conteúdo da seção e inserir no modal
+                const body = document.getElementById('viewModalBody');
+                body.innerHTML = '';
+                const clone = target.cloneNode(true);
+                // remover hidden para exibir corretamente
+                clone.hidden = false;
+                body.appendChild(clone);
+
+                const viewModal = document.getElementById('viewModal');
+                viewModal.classList.add('show');
+                viewModal.setAttribute('aria-hidden', 'false');
+
+                // evitar scroll no body
+                document.body.style.overflow = 'hidden';
+            }
+
+            document.querySelectorAll('nav a').forEach(a => {
+                a.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const raw = this.getAttribute('href');
+                    const href = raw === '#' ? '' : raw.replace('#','');
+                    if (!href) {
+                        // scroll to top
+                        const viewModal = document.getElementById('viewModal');
+                        if (viewModal && viewModal.classList.contains('show')) {
+                            viewModal.classList.remove('show');
+                            viewModal.setAttribute('aria-hidden', 'true');
+                            document.body.style.overflow = '';
+                        }
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    } else {
+                        showView(href);
+                    }
+                });
+            });
+
+            // Handlers para fechar viewModal
+            document.addEventListener('click', function(e) {
+                if (e.target.classList && e.target.classList.contains('close-view-modal')) {
+                    const viewModal = document.getElementById('viewModal');
+                    viewModal.classList.remove('show');
+                    viewModal.setAttribute('aria-hidden', 'true');
+                    document.body.style.overflow = '';
+                }
+            });
+
+            document.getElementById('viewModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('show');
+                    this.setAttribute('aria-hidden', 'true');
+                    document.body.style.overflow = '';
+                }
+            });
+
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    const viewModal = document.getElementById('viewModal');
+                    if (viewModal.classList.contains('show')) {
+                        viewModal.classList.remove('show');
+                        viewModal.setAttribute('aria-hidden', 'true');
+                        document.body.style.overflow = '';
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
