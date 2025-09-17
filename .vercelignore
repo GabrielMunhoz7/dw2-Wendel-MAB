@@ -1,11 +1,9 @@
-backend/__pycache__/
-backend/*.db
-backend/test_*.py
-backend/setup_*.py
-backend/diagnose_*.py
-backend/fix_*.py
-backend/migrate_*.py
-backend/update_*.py
+backend/
+frontend/README.md
+README.md
+ChatIA.md
+DEPLOY_GUIDE.md
+runtime.txt
 *.pyc
 __pycache__/
 .env
@@ -13,7 +11,3 @@ __pycache__/
 node_modules/
 .DS_Store
 .git/
-README.md
-ChatIA.md
-backend/README.md
-backend/REPORT.md

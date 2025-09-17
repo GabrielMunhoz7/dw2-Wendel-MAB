@@ -1,8 +1,0 @@
-Flask==2.3.2
-SQLAlchemy==1.4.48
-psycopg2-binary==2.9.5
-flask-cors==4.0.0
-bcrypt==4.0.1
-python-dotenv==1.0.0
-requests==2.31.0
-itsdangerous==2.1.2
