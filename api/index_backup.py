@@ -10,6 +10,12 @@ from dotenv import load_dotenv
 # Carregar variáveis de ambiente
 load_dotenv()
 
+from database import SessionLocal, engine
+from models import Base, User, Coin
+
+# Criar tabelas se não existirem
+Base.metadata.create_all(bind=engine)
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'sua-chave-secreta-super-forte')
 
@@ -20,24 +26,7 @@ CORS(app, origins=allowed_origins)
 # Serializador para tokens
 serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 
-# Inicialização do banco com tratamento de erros
-try:
-    from database import SessionLocal, engine
-    from models import Base, User, Coin
-    
-    # Criar tabelas se não existirem
-    Base.metadata.create_all(bind=engine)
-    print("✅ Banco inicializado com sucesso")
-    
-except Exception as e:
-    print(f"❌ Erro na inicialização do banco: {e}")
-    # Continuar mesmo com erro para permitir debug
-    SessionLocal = None
-    engine = None
-
 def get_db():
-    if SessionLocal is None:
-        raise Exception("Banco de dados não inicializado")
     db = SessionLocal()
     try:
         return db
@@ -46,9 +35,6 @@ def get_db():
 
 def create_admin_if_not_exists():
     """Criar usuário admin se não existir"""
-    if SessionLocal is None:
-        return
-        
     db = SessionLocal()
     try:
         admin = db.query(User).filter(User.username == 'admin').first()
@@ -66,39 +52,40 @@ def create_admin_if_not_exists():
         db.close()
 
 def verify_token(token):
-    """Verificar e decodificar token JWT"""
+    """Verificar token JWT"""
     try:
-        data = serializer.loads(token, max_age=3600)  # Token válido por 1 hora
+        data = serializer.loads(token, max_age=86400)  # 24 horas
         return data
     except:
         return None
 
-@app.route('/api/debug')
-def debug_endpoint():
-    """Endpoint de debug para diagnóstico"""
-    try:
-        debug_info = {
-            "status": "ok",
-            "database_url": "CONFIGURADA" if os.environ.get("DATABASE_URL") else "NÃO CONFIGURADA",
-            "secret_key": "CONFIGURADA" if os.environ.get("SECRET_KEY") else "NÃO CONFIGURADA",
-            "allowed_origins": os.environ.get("ALLOWED_ORIGINS", "NÃO CONFIGURADA"),
-            "database_status": "OK" if SessionLocal is not None else "ERRO"
-        }
-        return jsonify(debug_info)
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+# Rotas da API
+@app.route('/api', methods=['GET'])
+@app.route('/api/', methods=['GET'])
+def hello():
+    return jsonify({"message": "API do Catálogo de Moedas", "status": "online", "version": "1.0"})
 
-@app.route('/api/health')
-def health_check():
-    """Health check simples"""
-    return jsonify({"status": "healthy", "message": "API funcionando"})
+@app.route('/api/health', methods=['GET'])
+def health():
+    try:
+        # Testar conexão com banco
+        db = get_db()
+        db.execute("SELECT 1")
+        return jsonify({
+            "status": "healthy", 
+            "database": "connected",
+            "message": "API funcionando perfeitamente!"
+        })
+    except Exception as e:
+        return jsonify({
+            "status": "error", 
+            "database": "disconnected",
+            "error": str(e)
+        }), 500
 
 @app.route('/api/login', methods=['POST'])
 def login():
     try:
-        if SessionLocal is None:
-            return jsonify({"error": "Banco de dados não disponível"}), 500
-            
         data = request.get_json()
         username = data.get('username')
         password = data.get('password')
@@ -110,20 +97,24 @@ def login():
         user = db.query(User).filter(User.username == username).first()
         
         if user and bcrypt.checkpw(password.encode('utf-8'), user.password_hash.encode('utf-8')):
-            token = serializer.dumps({"user_id": user.id, "username": user.username, "role": user.role})
-            return jsonify({"token": token, "user": {"username": user.username, "role": user.role}})
+            token = serializer.dumps({'user_id': user.id, 'role': user.role})
+            return jsonify({
+                "message": "Login realizado com sucesso",
+                "token": token,
+                "user": {
+                    "id": user.id,
+                    "username": user.username,
+                    "role": user.role
+                }
+            })
         else:
             return jsonify({"error": "Credenciais inválidas"}), 401
-            
     except Exception as e:
         return jsonify({"error": f"Erro no login: {str(e)}"}), 500
 
 @app.route('/api/coins', methods=['GET'])
 def get_coins():
     try:
-        if SessionLocal is None:
-            return jsonify({"error": "Banco de dados não disponível"}), 500
-            
         db = get_db()
         coins = db.query(Coin).all()
         
@@ -152,9 +143,6 @@ def get_coins():
 @app.route('/api/coins', methods=['POST'])
 def create_coin():
     try:
-        if SessionLocal is None:
-            return jsonify({"error": "Banco de dados não disponível"}), 500
-            
         # Verificar autenticação
         auth_header = request.headers.get('Authorization')
         if not auth_header or not auth_header.startswith('Bearer '):
@@ -216,12 +204,80 @@ def create_coin():
     except Exception as e:
         return jsonify({"error": f"Erro ao criar moeda: {str(e)}"}), 500
 
+@app.route('/api/coins/<int:coin_id>', methods=['PUT'])
+def update_coin(coin_id):
+    try:
+        # Verificar autenticação
+        auth_header = request.headers.get('Authorization')
+        if not auth_header or not auth_header.startswith('Bearer '):
+            return jsonify({"error": "Token de autorização necessário"}), 401
+        
+        token = auth_header.split(' ')[1]
+        user_data = verify_token(token)
+        if not user_data:
+            return jsonify({"error": "Token inválido"}), 401
+        
+        data = request.get_json()
+        db = get_db()
+        
+        coin = db.query(Coin).filter(Coin.id == coin_id).first()
+        if not coin:
+            return jsonify({"error": "Moeda não encontrada"}), 404
+        
+        # Atualizar campos
+        if 'name' in data:
+            coin.name = data['name']
+        if 'period' in data:
+            coin.period = data['period']
+        if 'region' in data:
+            coin.region = data['region']
+        if 'material' in data:
+            coin.material = data['material']
+        if 'denomination' in data:
+            coin.denomination = data['denomination']
+        if 'year' in data:
+            coin.year = data['year']
+        if 'description' in data:
+            coin.description = data['description']
+        if 'historia' in data:
+            coin.historia = data['historia']
+        if 'contexto' in data:
+            coin.contexto = data['contexto']
+        if 'referencia' in data:
+            coin.referencia = data['referencia']
+        if 'image_front' in data:
+            coin.image_front = data['image_front']
+        if 'image_back' in data:
+            coin.image_back = data['image_back']
+        
+        db.commit()
+        db.refresh(coin)
+        
+        return jsonify({
+            "message": "Moeda atualizada com sucesso",
+            "coin": {
+                "id": coin.id,
+                "name": coin.name,
+                "period": coin.period,
+                "region": coin.region,
+                "material": coin.material,
+                "denomination": coin.denomination,
+                "year": coin.year,
+                "description": coin.description,
+                "historia": coin.historia,
+                "contexto": coin.contexto,
+                "referencia": coin.referencia,
+                "image_front": coin.image_front,
+                "image_back": coin.image_back
+            }
+        })
+        
+    except Exception as e:
+        return jsonify({"error": f"Erro ao atualizar moeda: {str(e)}"}), 500
+
 @app.route('/api/coins/<int:coin_id>', methods=['DELETE'])
 def delete_coin(coin_id):
     try:
-        if SessionLocal is None:
-            return jsonify({"error": "Banco de dados não disponível"}), 500
-            
         # Verificar autenticação
         auth_header = request.headers.get('Authorization')
         if not auth_header or not auth_header.startswith('Bearer '):
