@@ -5,6 +5,10 @@ from flask_cors import CORS
 from sqlalchemy.orm import Session
 from itsdangerous import URLSafeTimedSerializer
 import json
+from dotenv import load_dotenv
+
+# Carregar variáveis de ambiente
+load_dotenv()
 
 from database import SessionLocal, engine
 from models import Base, User, Coin
@@ -119,12 +123,17 @@ def get_coins():
             coins_data.append({
                 "id": coin.id,
                 "name": coin.name,
+                "period": coin.period,
+                "region": coin.region,
+                "material": coin.material,
+                "denomination": coin.denomination,
                 "year": coin.year,
-                "country": coin.country,
-                "value": coin.value,
-                "rarity": coin.rarity,
                 "description": coin.description,
-                "image_url": coin.image_url
+                "historia": coin.historia,
+                "contexto": coin.contexto,
+                "referencia": coin.referencia,
+                "image_front": coin.image_front,
+                "image_back": coin.image_back
             })
         
         return jsonify(coins_data)
@@ -147,7 +156,7 @@ def create_coin():
         data = request.get_json()
         
         # Validar dados obrigatórios
-        required_fields = ['name', 'year', 'country', 'value', 'rarity']
+        required_fields = ['name', 'period', 'region', 'material']
         for field in required_fields:
             if field not in data:
                 return jsonify({"error": f"Campo '{field}' é obrigatório"}), 400
@@ -156,12 +165,17 @@ def create_coin():
         
         new_coin = Coin(
             name=data['name'],
-            year=data['year'],
-            country=data['country'],
-            value=data['value'],
-            rarity=data['rarity'],
+            period=data['period'],
+            region=data['region'],
+            material=data['material'],
+            denomination=data.get('denomination', ''),
+            year=data.get('year'),
             description=data.get('description', ''),
-            image_url=data.get('image_url', '')
+            historia=data.get('historia', ''),
+            contexto=data.get('contexto', ''),
+            referencia=data.get('referencia', ''),
+            image_front=data.get('image_front', ''),
+            image_back=data.get('image_back', '')
         )
         
         db.add(new_coin)
@@ -173,12 +187,17 @@ def create_coin():
             "coin": {
                 "id": new_coin.id,
                 "name": new_coin.name,
+                "period": new_coin.period,
+                "region": new_coin.region,
+                "material": new_coin.material,
+                "denomination": new_coin.denomination,
                 "year": new_coin.year,
-                "country": new_coin.country,
-                "value": new_coin.value,
-                "rarity": new_coin.rarity,
                 "description": new_coin.description,
-                "image_url": new_coin.image_url
+                "historia": new_coin.historia,
+                "contexto": new_coin.contexto,
+                "referencia": new_coin.referencia,
+                "image_front": new_coin.image_front,
+                "image_back": new_coin.image_back
             }
         }), 201
         
@@ -208,18 +227,28 @@ def update_coin(coin_id):
         # Atualizar campos
         if 'name' in data:
             coin.name = data['name']
+        if 'period' in data:
+            coin.period = data['period']
+        if 'region' in data:
+            coin.region = data['region']
+        if 'material' in data:
+            coin.material = data['material']
+        if 'denomination' in data:
+            coin.denomination = data['denomination']
         if 'year' in data:
             coin.year = data['year']
-        if 'country' in data:
-            coin.country = data['country']
-        if 'value' in data:
-            coin.value = data['value']
-        if 'rarity' in data:
-            coin.rarity = data['rarity']
         if 'description' in data:
             coin.description = data['description']
-        if 'image_url' in data:
-            coin.image_url = data['image_url']
+        if 'historia' in data:
+            coin.historia = data['historia']
+        if 'contexto' in data:
+            coin.contexto = data['contexto']
+        if 'referencia' in data:
+            coin.referencia = data['referencia']
+        if 'image_front' in data:
+            coin.image_front = data['image_front']
+        if 'image_back' in data:
+            coin.image_back = data['image_back']
         
         db.commit()
         db.refresh(coin)
@@ -229,12 +258,17 @@ def update_coin(coin_id):
             "coin": {
                 "id": coin.id,
                 "name": coin.name,
+                "period": coin.period,
+                "region": coin.region,
+                "material": coin.material,
+                "denomination": coin.denomination,
                 "year": coin.year,
-                "country": coin.country,
-                "value": coin.value,
-                "rarity": coin.rarity,
                 "description": coin.description,
-                "image_url": coin.image_url
+                "historia": coin.historia,
+                "contexto": coin.contexto,
+                "referencia": coin.referencia,
+                "image_front": coin.image_front,
+                "image_back": coin.image_back
             }
         })
         
@@ -276,3 +310,8 @@ except Exception as e:
 
 # Exportar para Vercel
 app = app
+
+if __name__ == '__main__':
+    print("🚀 Iniciando servidor da API...")
+    print("📍 Acesse: http://localhost:5000")
+    app.run(debug=True, host='0.0.0.0', port=5000)
