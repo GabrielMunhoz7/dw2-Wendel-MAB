@@ -1,5 +1,4 @@
-// Configuração da API
-const API_BASE = window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : '/api';
+// Agora usando Supabase diretamente
 
 // Estado da aplicação
 let currentUser = null;
@@ -47,50 +46,22 @@ function setupEventListeners() {
 
 // === FUNÇÕES DE API ===
 async function loadCoins() {
+    if (!window.supabaseClient) { showError('Supabase não inicializado'); return; }
     try {
         showLoading(true);
-        const response = await fetch(`${API_BASE}/coins`);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const coins = await response.json();
-        allCoins = coins;
-        filteredCoins = [...coins];
+        const { data, error } = await supabaseClient.from('coins').select('*').order('id');
+        if (error) throw error;
+        allCoins = data || [];
+        filteredCoins = [...allCoins];
         renderCoins(filteredCoins);
         updateFilters();
-    } catch (error) {
-        console.error('Erro ao carregar moedas:', error);
-        showError('Erro ao carregar moedas. Usando dados locais...');
-        loadFallbackData();
-    } finally {
-        showLoading(false);
-    }
-}
-
-function loadFallbackData() {
-    // Dados de fallback quando a API não funciona
-    allCoins = [
-        {
-            id: 1,
-            name: "Denário Romano",
-            period: "27 AC - 14 DC",
-            region: "Império Romano",
-            material: "Prata",
-            denomination: "Denário",
-            year: "27 AC - 14 DC",
-            description: "Moeda do período de Augusto...",
-            historia: "História detalhada...",
-            contexto: "Contexto histórico...",
-            referencia: "Referências bíblicas...",
-            image_front: "https://images.unsplash.com/photo-1544380904-c686aad2fc40?w=400",
-            image_back: "https://images.unsplash.com/photo-1544380904-c686aad2fc40?w=400"
-        }
-    ];
-    filteredCoins = [...allCoins];
-    renderCoins(filteredCoins);
-    updateFilters();
+    } catch (err) {
+        console.error('Erro Supabase loadCoins:', err);
+        showError('Erro ao carregar moedas: ' + err.message);
+        allCoins = [];
+        filteredCoins = [];
+        renderCoins(filteredCoins);
+    } finally { showLoading(false); }
 }
 
 async function login(username, password) {
@@ -122,59 +93,28 @@ async function login(username, password) {
 
 async function addCoin(coinData) {
     try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            showError('Você precisa estar logado para adicionar moedas');
-            return;
-        }
-        
-        const response = await fetch(`${API_BASE}/coins`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify(coinData)
-        });
-        
-        const data = await response.json();
-        
-        if (response.ok) {
-            showSuccess('Moeda adicionada com sucesso!');
-            hideModal(addCoinModal);
-            await loadCoins(); // Recarregar lista
-        } else {
-            showError(data.error || 'Erro ao adicionar moeda');
-        }
-        
-        return data;
-    } catch (error) {
-        console.error('Erro ao adicionar moeda:', error);
-        showError('Erro ao adicionar moeda. Tente novamente.');
+        const { data, error } = await supabaseClient.from('coins').insert([coinData]).select();
+        if (error) throw error;
+        showSuccess('Moeda adicionada!');
+        hideModal(addCoinModal);
+        await loadCoins();
+        return data?.[0];
+    } catch (err) {
+        console.error('Erro addCoin:', err);
+        showError('Erro ao adicionar: ' + err.message);
     }
 }
 
 async function deleteCoin(coinId) {
     if (!confirm('Tem certeza que deseja excluir esta moeda?')) return;
-    
     try {
-        const token = localStorage.getItem('token');
-        const response = await fetch(`${API_BASE}/coins/${coinId}`, {
-            method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-        
-        if (response.ok) {
-            showSuccess('Moeda excluída com sucesso!');
-            await loadCoins();
-        } else {
-            showError('Erro ao excluir moeda');
-        }
-    } catch (error) {
-        console.error('Erro ao excluir moeda:', error);
-        showError('Erro ao excluir moeda');
+        const { error } = await supabaseClient.from('coins').delete().eq('id', coinId);
+        if (error) throw error;
+        showSuccess('Moeda excluída!');
+        await loadCoins();
+    } catch (err) {
+        console.error('Erro deleteCoin:', err);
+        showError('Erro ao excluir: ' + err.message);
     }
 }
 
