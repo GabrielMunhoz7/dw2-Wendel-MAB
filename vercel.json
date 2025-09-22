@@ -10,9 +10,5 @@
       "source": "/api/(.*)",
       "destination": "/api/index.py"
     }
-  ],
-  "env": {
-    "DATABASE_URL": "@database_url",
-    "SECRET_KEY": "@secret_key"
-  }
+  ]
 }
