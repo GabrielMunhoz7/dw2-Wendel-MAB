@@ -1,6 +1,34 @@
+# Ignorar diretório frontend (duplicado)
 frontend/
+
+# Ignorar documentação
 README.md
 ChatIA.md
 DEPLOY_GUIDE.md
+DEPLOY_CONFIGURADO.md
+SUPABASE_SETUP.md
+
+# Ignorar arquivos de desenvolvimento
 .vscode/
 .git/
+
+# Ignorar API Python (usando Supabase agora)
+api/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignorar arquivos de teste e debug
+*test*.py
+*debug*.py
+*diagnose*.py
+test*.html
+diagnostico*.html
+adicionar*.html
+
+# Ignorar outros arquivos desnecessários
+.DS_Store
+Thumbs.db
+*.log
+node_modules/
