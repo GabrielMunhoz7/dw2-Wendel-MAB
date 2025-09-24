@@ -9,6 +9,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700&display=swap" rel="stylesheet">
     
+    <!-- Supabase JS -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="js/supabaseClient.js"></script>
+    
     <style>
     /* Variáveis de cores */
     :root {
@@ -846,7 +850,7 @@
         </div>
 
     <script>
-        // JavaScript integrado para funcionalidade básica
+        // JavaScript integrado para funcionalidade básica com Supabase
         document.addEventListener('DOMContentLoaded', function() {
             // Configuração da URL da API
             const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
@@ -859,8 +863,8 @@
 
             // amostra local usada quando não houver backend
             const localSample = [
-                { id: 1, name: 'Denário Romano', period: 'Antigo', region: 'Roma', year: '-200', image: 'assets/coins/denario-tiberio.jpg', description: 'Denário da República Romana.' },
-                { id: 2, name: 'Moeda Portuguesa', period: 'Moderno', region: 'Portugal', year: '1910', image: 'assets/coins/siclo-prata.jpg', description: 'Centavo do início do século XX.' }
+                { id: 1, name: 'Denário Romano', period: 'ANTIGO', region: 'Roma', year: '-200', image: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><circle cx="100" cy="100" r="90" fill="%23C0C0C0" stroke="%23808080" stroke-width="4"/><text x="100" y="110" text-anchor="middle" font-family="serif" font-size="16" fill="%23404040">Moeda</text></svg>', description: 'Denário da República Romana.' },
+                { id: 2, name: 'Moeda Portuguesa', period: 'MODERNO', region: 'Portugal', year: '1910', image: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><circle cx="100" cy="100" r="90" fill="%23CD7F32" stroke="%23A0522D" stroke-width="4"/><text x="100" y="110" text-anchor="middle" font-family="serif" font-size="16" fill="%23654321">Moeda</text></svg>', description: 'Centavo do início do século XX.' }
             ];
 
             // Helpers: autenticação e fetch
@@ -924,18 +928,31 @@
 
             async function fetchCoins() {
                 try {
-                    const res = await fetch(`${API_BASE_URL}/api/coins`);
-                    if (!res.ok) throw new Error('Erro ao buscar moedas');
-                    coinsData = await res.json();
-                    backendAvailable = true;
-                    // if there are local coins from offline usage, try to sync them into server DB
-                    await syncLocalToServer();
+                    // Usar Supabase em vez de API
+                    if (window.supabaseClient) {
+                        const { data, error } = await window.supabaseClient
+                            .from('coins')
+                            .select('*')
+                            .order('id');
+                        
+                        if (error) throw error;
+                        
+                        // Se não tiver dados no Supabase ou dados incorretos, usar localSample
+                        if (!data || data.length === 0) {
+                            console.log('Supabase vazio, usando dados locais padrão');
+                            coinsData = localSample.slice();
+                        } else {
+                            coinsData = data;
+                        }
+                        backendAvailable = true;
+                    } else {
+                        throw new Error('Supabase não inicializado');
+                    }
                 } catch (err) {
-                    console.warn('Backend não disponível, usando modo local:', err.message);
+                    console.warn('Supabase não disponível, usando modo local:', err.message);
                     backendAvailable = false;
-                    // tenta carregar do localStorage
-                    const local = localStorage.getItem('local_coins');
-                    coinsData = local ? JSON.parse(local) : localSample.slice();
+                    // usar sempre o localSample como fallback
+                    coinsData = localSample.slice();
                 }
                 renderCoins(coinsData);
                 renderFilters();
@@ -979,21 +996,30 @@
 
             async function submitEdit(id, payload) {
                 try {
-                    if (backendAvailable) {
-                        const token = localStorage.getItem('auth_token');
-                        const res = await fetch(`${API_BASE_URL}/api/coins/${id}`, {
-                            method: 'PUT',
-                            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-                            body: JSON.stringify(payload)
-                        });
-                        if (!res.ok) throw new Error('Falha ao atualizar');
-                        const updated = await res.json();
-                        // atualizar cache
-                        coinsData = coinsData.map(c => c.id === updated.id ? updated : c);
+                    if (backendAvailable && window.supabaseClient) {
+                        const { data, error } = await window.supabaseClient
+                            .from('coins')
+                            .update(payload)
+                            .eq('id', id)
+                            .select();
+                        
+                        if (error) throw error;
+                        
+                        if (data && data.length > 0) {
+                            // atualizar dados locais
+                            const index = coinsData.findIndex(c => +c.id === +id);
+                            if (index !== -1) coinsData[index] = data[0];
+                            renderCoins(coinsData);
+                            renderFilters();
+                            alert('Moeda atualizada!');
+                        }
                     } else {
                         // fallback local
                         coinsData = coinsData.map(c => c.id === +id ? Object.assign({}, c, payload, { id: +id }) : c);
                         localStorage.setItem('local_coins', JSON.stringify(coinsData));
+                        renderCoins(coinsData);
+                        renderFilters();
+                        alert('Moeda atualizada localmente!');
                     }
                     renderCoins(coinsData);
                 } catch (err) {
@@ -1004,17 +1030,26 @@
             async function deleteCoin(id) {
                 if (!confirm('Confirma exclusão desta moeda?')) return;
                 try {
-                    if (backendAvailable) {
-                        const token = localStorage.getItem('auth_token');
-                        const res = await fetch(`${API_BASE_URL}/api/coins/${id}`, { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + token } });
-                        if (!res.ok) throw new Error('Falha ao excluir');
-                        // remover do cache
+                    if (backendAvailable && window.supabaseClient) {
+                        const { error } = await window.supabaseClient
+                            .from('coins')
+                            .delete()
+                            .eq('id', id);
+                        
+                        if (error) throw error;
+                        
+                        // remover do cache local
                         coinsData = coinsData.filter(c => +c.id !== +id);
+                        renderCoins(coinsData);
+                        renderFilters();
+                        alert('Moeda excluída!');
                     } else {
                         coinsData = coinsData.filter(c => +c.id !== +id);
                         localStorage.setItem('local_coins', JSON.stringify(coinsData));
+                        renderCoins(coinsData);
+                        renderFilters();
+                        alert('Moeda excluída localmente!');
                     }
-                    renderCoins(coinsData);
                 } catch (err) {
                     alert('Erro ao excluir moeda: ' + err.message);
                 }
@@ -1039,20 +1074,30 @@
 
             async function submitAdd(payload) {
                 try {
-                    if (backendAvailable) {
-                        const token = localStorage.getItem('auth_token');
-                        const res = await fetch(`${API_BASE_URL}/api/coins`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify(payload) });
-                        if (!res.ok) throw new Error('Falha ao criar');
-                        const created = await res.json();
-                        coinsData.push(created);
+                    if (backendAvailable && window.supabaseClient) {
+                        const { data, error } = await window.supabaseClient
+                            .from('coins')
+                            .insert([payload])
+                            .select();
+                        
+                        if (error) throw error;
+                        
+                        if (data && data.length > 0) {
+                            coinsData.push(data[0]);
+                            renderCoins(coinsData);
+                            renderFilters();
+                            alert('Moeda adicionada!');
+                        }
                     } else {
                         // atribui id novo local (max+1)
                         const maxId = coinsData.reduce((m,c)=> Math.max(m, +c.id), 0);
                         const created = Object.assign({ id: maxId + 1 }, payload);
                         coinsData.push(created);
                         localStorage.setItem('local_coins', JSON.stringify(coinsData));
+                        renderCoins(coinsData);
+                        renderFilters();
+                        alert('Moeda adicionada localmente!');
                     }
-                    renderCoins(coinsData);
                 } catch (err) {
                     alert('Erro ao adicionar moeda: ' + err.message);
                 }
@@ -1079,7 +1124,7 @@
                 grid.innerHTML = addBtnHtml + coins.map(coin => `
                     <div class="coin-card fade-in" data-id="${coin.id}">
                         <img src="${coin.image || coin.image_front}" alt="${coin.name}" class="coin-image" 
-                             onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjBGMEYwIi8+CjxjaXJjbGUgY3g9IjEwMCIgY3k9IjEwMCIgcj0iNDAiIHN0cm9rZT0iIzhCNDUxMyIgc3Ryb2tlLXdpZHRoPSIyIiBmaWxsPSJub25lIi8+Cjx0ZXh0IHg9IjEwMCIgeT0iMTA1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiM4QjQ1MTMiPk1vZWRhPC90ZXh0Pgo8L3N2Zz4K'">
+                             onerror="this.src='data:image/svg+xml,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 200 200&quot;><circle cx=&quot;100&quot; cy=&quot;100&quot; r=&quot;90&quot; fill=&quot;%23C0C0C0&quot; stroke=&quot;%23808080&quot; stroke-width=&quot;4&quot;/><text x=&quot;100&quot; y=&quot;110&quot; text-anchor=&quot;middle&quot; font-family=&quot;serif&quot; font-size=&quot;16&quot; fill=&quot;%23404040&quot;>Moeda</text></svg>'">
                         <div class="coin-info">
                             <h3>${coin.name}</h3>
                             <p class="coin-period">${coin.period}</p>

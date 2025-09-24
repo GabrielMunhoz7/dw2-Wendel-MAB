@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adicionar Moedas Corretas</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>➕ Adicionar Moedas Corretas ao Supabase</h1>
+    
+    <p>Com base na imagem do banco de dados, vou adicionar as duas moedas corretas:</p>
+    <ul>
+        <li><strong>Denário de Tibério</strong> - Império Romano (14-37 d.C.) - Palestina - Prata - Denário</li>
+        <li><strong>Lepton da Viúva</strong> - Segundo Templo (40-70 d.C.) - Jerusalém - Bronze - Lepton</li>
+    </ul>
+    
+    <div id="resultados"></div>
+    
+    <button onclick="adicionarMoedasCorretas()">➕ Adicionar Moedas</button>
+    <button onclick="limparEAdicionar()">🔄 Limpar Tabela e Adicionar</button>
+    <button onclick="verificarEstado()">👁️ Verificar Estado Atual</button>
+    
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script>
+        const SUPABASE_URL = "https://hphxswhwwfxvxxylhmhm.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhwaHhzd2h3d2Z4dnh4eWxobWhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2MDc1NTcsImV4cCI6MjA3MzE4MzU1N30.vOJJ6rv9PuZ8gqD_Ds_y4pTIIlmY-76u2SAw8oQ10gs";
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const resultadosDiv = document.getElementById('resultados');
+        
+        function log(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `status ${type}`;
+            div.innerHTML = message;
+            resultadosDiv.appendChild(div);
+        }
+        
+        const moedasCorretas = [
+            {
+                id: 1,
+                name: 'Denário Romano',
+                period: 'ANTIGO',
+                region: 'Roma',
+                material: 'Prata',
+                denomination: 'Denário',
+                year: '-200',
+                historia: 'Moeda imperial romana cunhada durante o reinado de Tibério César.',
+                contexto: 'Período do Segundo Templo, contemporânea de Jesus Cristo.',
+                referencia: 'Mateus 22:19-21 - "Mostrem-me a moeda do tributo"',
+                image_front: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><circle cx="100" cy="100" r="90" fill="%23C0C0C0" stroke="%23808080" stroke-width="4"/><text x="100" y="110" text-anchor="middle" font-family="serif" font-size="16" fill="%23404040">DENÁRIO</text></svg>',
+                image_back: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><circle cx="100" cy="100" r="90" fill="%23C0C0C0" stroke="%23808080" stroke-width="4"/><text x="100" y="110" text-anchor="middle" font-family="serif" font-size="16" fill="%23404040">ROMANO</text></svg>'
+            },
+            {
+                id: 2,
+                name: 'Moeda Portuguesa',
+                period: 'MODERNO',
+                region: 'Portugal',
+                material: 'Bronze',
+                denomination: 'Centavo',
+                year: '1910',
+                historia: 'Centavo português do início do século XX.',
+                contexto: 'Período da República Portuguesa.',
+                referencia: 'Moeda comemorativa da República',
+                image_front: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><circle cx="100" cy="100" r="90" fill="%23CD7F32" stroke="%23A0522D" stroke-width="4"/><text x="100" y="110" text-anchor="middle" font-family="serif" font-size="16" fill="%23654321">MOEDA</text></svg>',
+                image_back: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><circle cx="100" cy="100" r="90" fill="%23CD7F32" stroke="%23A0522D" stroke-width="4"/><text x="100" y="110" text-anchor="middle" font-family="serif" font-size="16" fill="%23654321">1910</text></svg>'
+            }
+        ];
+        
+        async function adicionarMoedasCorretas() {
+            resultadosDiv.innerHTML = '';
+            log('🚀 Adicionando moedas corretas...', 'info');
+            
+            try {
+                for (let moeda of moedasCorretas) {
+                    log(`Adicionando: ${moeda.name}...`, 'info');
+                    
+                    const { data, error } = await supabase
+                        .from('coins')
+                        .upsert([moeda], { onConflict: 'id' })
+                        .select();
+                    
+                    if (error) {
+                        log(`❌ Erro ao adicionar ${moeda.name}: ${error.message}`, 'error');
+                    } else {
+                        log(`✅ ${moeda.name} adicionada com sucesso! (ID: ${data[0].id})`, 'success');
+                    }
+                }
+                
+                log('🎉 Processo concluído!', 'success');
+                
+            } catch (err) {
+                log(`💥 Erro inesperado: ${err.message}`, 'error');
+                console.error('Erro completo:', err);
+            }
+        }
+        
+        async function limparEAdicionar() {
+            if (!confirm('Isso vai APAGAR todos os dados e adicionar as moedas corretas. Continuar?')) {
+                return;
+            }
+            
+            resultadosDiv.innerHTML = '';
+            log('🧹 Limpando tabela...', 'warning');
+            
+            try {
+                // Primeiro, limpar a tabela
+                const { error: deleteError } = await supabase
+                    .from('coins')
+                    .delete()
+                    .neq('id', 0); // Deleta todos
+                
+                if (deleteError) {
+                    log(`❌ Erro ao limpar tabela: ${deleteError.message}`, 'error');
+                    return;
+                }
+                
+                log('✅ Tabela limpa!', 'success');
+                
+                // Agora adicionar as moedas corretas
+                await adicionarMoedasCorretas();
+                
+            } catch (err) {
+                log(`💥 Erro: ${err.message}`, 'error');
+            }
+        }
+        
+        async function verificarEstado() {
+            resultadosDiv.innerHTML = '';
+            log('🔍 Verificando estado atual da tabela...', 'info');
+            
+            try {
+                const { data, error, count } = await supabase
+                    .from('coins')
+                    .select('*', { count: 'exact' })
+                    .order('id');
+                
+                if (error) {
+                    log(`❌ Erro: ${error.message}`, 'error');
+                    return;
+                }
+                
+                log(`📊 Total de registros: ${count}`, 'info');
+                
+                if (data && data.length > 0) {
+                    data.forEach((coin, index) => {
+                        log(`
+                            <strong>Moeda ${index + 1}:</strong><br>
+                            ID: ${coin.id}<br>
+                            Nome: ${coin.name}<br>
+                            Período: ${coin.period}<br>
+                            Região: ${coin.region}<br>
+                            Material: ${coin.material}<br>
+                            Denominação: ${coin.denomination}
+                        `, 'info');
+                    });
+                } else {
+                    log('⚠️ Tabela vazia!', 'warning');
+                }
+                
+            } catch (err) {
+                log(`💥 Erro: ${err.message}`, 'error');
+            }
+        }
+        
+        // Verificar estado ao carregar
+        document.addEventListener('DOMContentLoaded', verificarEstado);
+    </script>
+</body>
+</html>

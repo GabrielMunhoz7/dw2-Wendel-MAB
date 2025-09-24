@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Supabase</title>
+</head>
+<body>
+    <h1>Teste de Conexão Supabase</h1>
+    <div id="status">Carregando...</div>
+    <div id="dados"></div>
+    
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script>
+        const SUPABASE_URL = "https://hphxswhwwfxvxxylhmhm.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhwaHhzd2h3d2Z4dnh4eWxobWhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2MDc1NTcsImV4cCI6MjA3MzE4MzU1N30.vOJJ6rv9PuZ8gqD_Ds_y4pTIIlmY-76u2SAw8oQ10gs";
+        
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        async function testarConexao() {
+            const statusDiv = document.getElementById('status');
+            const dadosDiv = document.getElementById('dados');
+            
+            try {
+                statusDiv.textContent = 'Conectando ao Supabase...';
+                
+                // Testar conexão básica
+                const { data, error, count } = await supabaseClient
+                    .from('coins')
+                    .select('*', { count: 'exact' });
+                
+                if (error) {
+                    throw error;
+                }
+                
+                statusDiv.innerHTML = `<span style="color: green;">✓ Conectado com sucesso!</span><br>Total de moedas: ${count}`;
+                
+                if (data && data.length > 0) {
+                    dadosDiv.innerHTML = '<h3>Moedas no banco:</h3>' + 
+                        data.map(coin => `<p><strong>${coin.name}</strong> - ${coin.period || 'Sem período'} - ${coin.region || 'Sem região'}</p>`).join('');
+                } else {
+                    dadosDiv.innerHTML = '<p>Nenhuma moeda encontrada no banco de dados.</p>';
+                }
+                
+            } catch (err) {
+                console.error('Erro:', err);
+                statusDiv.innerHTML = `<span style="color: red;">❌ Erro de conexão:</span><br>${err.message}`;
+            }
+        }
+        
+        // Executar teste quando a página carregar
+        document.addEventListener('DOMContentLoaded', testarConexao);
+    </script>
+</body>
+</html>

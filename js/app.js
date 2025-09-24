@@ -1,4 +1,5 @@
-// Agora usando Supabase diretamente
+// Agora usando Supabase diretamente (API base não é mais usada)
+// const API_BASE = ... (removido)
 
 // Estado da aplicação
 let currentUser = null;
@@ -46,10 +47,16 @@ function setupEventListeners() {
 
 // === FUNÇÕES DE API ===
 async function loadCoins() {
-    if (!window.supabaseClient) { showError('Supabase não inicializado'); return; }
+    if (!window.supabaseClient) {
+        showError('Supabase não inicializado');
+        return;
+    }
     try {
         showLoading(true);
-        const { data, error } = await supabaseClient.from('coins').select('*').order('id');
+        const { data, error } = await supabaseClient
+            .from('coins')
+            .select('id,name,period,region,material,denomination,historia,contexto,referencia,image_front,image_back')
+            .order('id');
         if (error) throw error;
         allCoins = data || [];
         filteredCoins = [...allCoins];
@@ -61,7 +68,9 @@ async function loadCoins() {
         allCoins = [];
         filteredCoins = [];
         renderCoins(filteredCoins);
-    } finally { showLoading(false); }
+    } finally {
+        showLoading(false);
+    }
 }
 
 async function login(username, password) {
@@ -102,6 +111,24 @@ async function addCoin(coinData) {
     } catch (err) {
         console.error('Erro addCoin:', err);
         showError('Erro ao adicionar: ' + err.message);
+    }
+}
+
+async function updateCoin(coinId, coinData) {
+    try {
+        const { data, error } = await supabaseClient
+            .from('coins')
+            .update(coinData)
+            .eq('id', coinId)
+            .select();
+        if (error) throw error;
+        showSuccess('Moeda atualizada!');
+        hideModal(addCoinModal);
+        await loadCoins();
+        return data?.[0];
+    } catch (err) {
+        console.error('Erro updateCoin:', err);
+        showError('Erro ao atualizar: ' + err.message);
     }
 }
 
@@ -359,7 +386,21 @@ function logout() {
 }
 
 function showAddCoinModal() {
-    if (addCoinModal) addCoinModal.style.display = 'flex';
+    if (addCoinModal) {
+        // Limpar o formulário
+        const form = addCoinModal.querySelector('form');
+        if (form) {
+            form.reset();
+            delete form.dataset.editingCoinId;
+            
+            // Restaurar título e botão para modo de adição
+            const modalTitle = addCoinModal.querySelector('.modal-header h2');
+            if (modalTitle) modalTitle.textContent = 'Adicionar Moeda';
+            const submitBtn = form.querySelector('[type="submit"]');
+            if (submitBtn) submitBtn.textContent = 'Adicionar Moeda';
+        }
+        addCoinModal.style.display = 'flex';
+    }
 }
 
 // === HANDLERS DE EVENTOS ===
@@ -374,7 +415,8 @@ async function handleLogin(e) {
 
 async function handleAddCoin(e) {
     e.preventDefault();
-    const formData = new FormData(e.target);
+    const form = e.target;
+    const formData = new FormData(form);
     
     const coinData = {
         name: formData.get('name'),
@@ -391,7 +433,19 @@ async function handleAddCoin(e) {
         image_back: formData.get('image_back')
     };
     
-    await addCoin(coinData);
+    // Verificar se estamos editando uma moeda existente
+    const editingCoinId = form.dataset.editingCoinId;
+    if (editingCoinId) {
+        await updateCoin(parseInt(editingCoinId), coinData);
+        // Limpar o estado de edição
+        delete form.dataset.editingCoinId;
+        const modalTitle = addCoinModal.querySelector('.modal-header h2');
+        if (modalTitle) modalTitle.textContent = 'Adicionar Moeda';
+        const submitBtn = form.querySelector('[type="submit"]');
+        if (submitBtn) submitBtn.textContent = 'Adicionar Moeda';
+    } else {
+        await addCoin(coinData);
+    }
 }
 
 // === FUNÇÕES UTILITÁRIAS ===
@@ -431,6 +485,40 @@ function showNotification(message, type) {
 // Expor funções globalmente para uso inline
 window.deleteCoin = deleteCoin;
 window.editCoin = function(coinId) {
-    showError('Função de edição ainda não implementada');
+    const coin = allCoins.find(c => c.id === coinId);
+    if (!coin) {
+        showError('Moeda não encontrada');
+        return;
+    }
+    
+    // Preencher o formulário de adicionar com os dados da moeda
+    if (addCoinModal) {
+        const form = addCoinModal.querySelector('form');
+        if (form) {
+            form.querySelector('[name="name"]').value = coin.name || '';
+            form.querySelector('[name="period"]').value = coin.period || '';
+            form.querySelector('[name="region"]').value = coin.region || '';
+            form.querySelector('[name="material"]').value = coin.material || '';
+            form.querySelector('[name="denomination"]').value = coin.denomination || '';
+            form.querySelector('[name="historia"]').value = coin.historia || '';
+            form.querySelector('[name="contexto"]').value = coin.contexto || '';
+            form.querySelector('[name="referencia"]').value = coin.referencia || '';
+            form.querySelector('[name="image_front"]').value = coin.image_front || '';
+            form.querySelector('[name="image_back"]').value = coin.image_back || '';
+            
+            // Alterar o título e comportamento do modal para edição
+            const modalTitle = addCoinModal.querySelector('.modal-header h2');
+            if (modalTitle) modalTitle.textContent = 'Editar Moeda';
+            
+            // Remover listener anterior e adicionar novo para edição
+            const submitBtn = form.querySelector('[type="submit"]');
+            if (submitBtn) submitBtn.textContent = 'Atualizar Moeda';
+            
+            // Guardar ID da moeda sendo editada
+            form.dataset.editingCoinId = coinId;
+            
+            showModal(addCoinModal);
+        }
+    }
 };
 window.hideModal = hideModal;

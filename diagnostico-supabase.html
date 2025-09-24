@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnóstico Completo Supabase</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 5px; overflow-x: auto; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Diagnóstico Completo Supabase</h1>
+    
+    <div id="resultados"></div>
+    
+    <button onclick="executarDiagnostico()">🔄 Executar Diagnóstico</button>
+    <button onclick="adicionarMoedaTeste()">➕ Adicionar Moeda de Teste</button>
+    <button onclick="limparTabela()">🗑️ Limpar Tabela</button>
+    
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script>
+        const SUPABASE_URL = "https://hphxswhwwfxvxxylhmhm.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhwaHhzd2h3d2Z4dnh4eWxobWhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2MDc1NTcsImV4cCI6MjA3MzE4MzU1N30.vOJJ6rv9PuZ8gqD_Ds_y4pTIIlmY-76u2SAw8oQ10gs";
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const resultadosDiv = document.getElementById('resultados');
+        
+        function log(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `status ${type}`;
+            div.innerHTML = message;
+            resultadosDiv.appendChild(div);
+        }
+        
+        async function executarDiagnostico() {
+            resultadosDiv.innerHTML = '';
+            log('🚀 Iniciando diagnóstico...', 'info');
+            
+            try {
+                // 1. Verificar conexão básica
+                log('1. Testando conexão básica...', 'info');
+                const { error: pingError } = await supabase.from('coins').select('id').limit(1);
+                
+                if (pingError) {
+                    log(`❌ Erro de conexão: ${pingError.message}`, 'error');
+                    return;
+                }
+                log('✅ Conexão estabelecida com sucesso!', 'success');
+                
+                // 2. Verificar estrutura da tabela
+                log('2. Verificando estrutura da tabela...', 'info');
+                const { data: schema, error: schemaError } = await supabase.rpc('get_table_columns', { table_name: 'coins' });
+                
+                // 3. Contar registros
+                log('3. Contando registros...', 'info');
+                const { count, error: countError } = await supabase
+                    .from('coins')
+                    .select('*', { count: 'exact', head: true });
+                
+                if (countError) {
+                    log(`⚠️ Erro ao contar registros: ${countError.message}`, 'warning');
+                } else {
+                    log(`📊 Total de registros na tabela: ${count}`, 'info');
+                }
+                
+                // 4. Buscar todos os dados
+                log('4. Buscando todos os dados...', 'info');
+                const { data, error } = await supabase
+                    .from('coins')
+                    .select('*')
+                    .order('id');
+                
+                if (error) {
+                    log(`❌ Erro ao buscar dados: ${error.message}`, 'error');
+                    return;
+                }
+                
+                if (data && data.length > 0) {
+                    log(`✅ Encontrados ${data.length} registros:`, 'success');
+                    
+                    data.forEach((coin, index) => {
+                        log(`
+                            <strong>Moeda ${index + 1}:</strong><br>
+                            ID: ${coin.id}<br>
+                            Nome: ${coin.name || 'Sem nome'}<br>
+                            Período: ${coin.period || 'Sem período'}<br>
+                            Região: ${coin.region || 'Sem região'}<br>
+                            Material: ${coin.material || 'Sem material'}<br>
+                            Denominação: ${coin.denomination || 'Sem denominação'}<br>
+                            ---
+                        `, 'info');
+                    });
+                    
+                    log('<strong>Dados completos (JSON):</strong><pre>' + JSON.stringify(data, null, 2) + '</pre>', 'info');
+                } else {
+                    log('⚠️ Tabela vazia - nenhum registro encontrado!', 'warning');
+                }
+                
+                // 5. Verificar permissões
+                log('5. Verificando permissões...', 'info');
+                
+                // Tentar inserir um registro de teste
+                const testCoin = {
+                    name: 'Teste Diagnóstico',
+                    period: 'Moderno',
+                    region: 'Teste',
+                    material: 'Teste',
+                    denomination: 'Teste'
+                };
+                
+                const { data: insertData, error: insertError } = await supabase
+                    .from('coins')
+                    .insert([testCoin])
+                    .select();
+                
+                if (insertError) {
+                    log(`❌ Sem permissão de inserção: ${insertError.message}`, 'error');
+                } else {
+                    log('✅ Permissão de inserção OK', 'success');
+                    
+                    // Tentar deletar o registro de teste
+                    if (insertData && insertData[0]) {
+                        const { error: deleteError } = await supabase
+                            .from('coins')
+                            .delete()
+                            .eq('id', insertData[0].id);
+                        
+                        if (deleteError) {
+                            log(`⚠️ Erro ao limpar teste: ${deleteError.message}`, 'warning');
+                        } else {
+                            log('✅ Permissão de exclusão OK - teste limpo', 'success');
+                        }
+                    }
+                }
+                
+            } catch (err) {
+                log(`💥 Erro inesperado: ${err.message}`, 'error');
+                console.error('Erro completo:', err);
+            }
+        }
+        
+        async function adicionarMoedaTeste() {
+            try {
+                const testCoin = {
+                    name: 'Denário de Teste',
+                    period: 'Antigo',
+                    region: 'Roma',
+                    material: 'Prata',
+                    denomination: 'Denário',
+                    historia: 'Moeda de teste criada pelo diagnóstico'
+                };
+                
+                const { data, error } = await supabase
+                    .from('coins')
+                    .insert([testCoin])
+                    .select();
+                
+                if (error) {
+                    log(`❌ Erro ao adicionar moeda: ${error.message}`, 'error');
+                } else {
+                    log('✅ Moeda de teste adicionada com sucesso!', 'success');
+                    log(`ID: ${data[0].id}`, 'info');
+                }
+            } catch (err) {
+                log(`💥 Erro: ${err.message}`, 'error');
+            }
+        }
+        
+        async function limparTabela() {
+            if (!confirm('Tem certeza que deseja limpar TODA a tabela?')) return;
+            
+            try {
+                const { error } = await supabase
+                    .from('coins')
+                    .delete()
+                    .neq('id', 0); // Deleta todos os registros
+                
+                if (error) {
+                    log(`❌ Erro ao limpar tabela: ${error.message}`, 'error');
+                } else {
+                    log('✅ Tabela limpa com sucesso!', 'success');
+                }
+            } catch (err) {
+                log(`💥 Erro: ${err.message}`, 'error');
+            }
+        }
+        
+        // Executar diagnóstico automaticamente ao carregar
+        document.addEventListener('DOMContentLoaded', executarDiagnostico);
+    </script>
+</body>
+</html>
