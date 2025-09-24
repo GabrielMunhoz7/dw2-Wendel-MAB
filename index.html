@@ -1524,7 +1524,7 @@
                     if (e.key === 'Escape') closeDropdown();
                 });
 
-                // handler do submit: autentica contra /api/login
+                // handler do submit: autentica localmente
                 const submit = document.getElementById('loginSubmit');
                 if (submit) {
                     submit.addEventListener('click', async function(ev) {
@@ -1533,31 +1533,17 @@
                         const password = document.getElementById('loginPass').value;
                         if (!username || !password) { alert('Informe usuário e senha.'); return; }
                         try {
-                            if (!backendAvailable) {
-                                // modo local: aceita credenciais personalizadas
-                                if (username === 'mabeducativo' && password === 'painelmoedas') {
-                                    localStorage.setItem('auth_token', 'local');
-                                    localStorage.setItem('auth_mode', 'local');
-                                    closeDropdown();
-                                    updateLoginToggle();
-                                    fetchCoins();
-                                    return;
-                                }
-                                throw new Error('Credenciais inválidas (local)');
+                            // Apenas autenticação local
+                            if (username === 'mabeducativo' && password === 'painelmoedas') {
+                                localStorage.setItem('auth_token', 'local');
+                                localStorage.setItem('auth_mode', 'local');
+                                closeDropdown();
+                                updateLoginToggle();
+                                fetchCoins();
+                                alert('Login realizado com sucesso!');
+                                return;
                             }
-
-                            const res = await fetch(`${API_BASE_URL}/api/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }) });
-                            if (!res.ok) {
-                                const err = await res.json().catch(() => ({}));
-                                throw new Error(err.detail || 'Credenciais inválidas');
-                            }
-                            const data = await res.json();
-                            localStorage.setItem('auth_token', data.token);
-                            localStorage.removeItem('auth_mode');
-                            closeDropdown();
-                            // atualiza botão e lista
-                            document.getElementById('loginToggle').textContent = 'Sair';
-                            await fetchCoins();
+                            throw new Error('Credenciais inválidas. Use: mabeducativo / painelmoedas');
                         } catch (err) {
                             alert('Falha no login: ' + err.message);
                         }
