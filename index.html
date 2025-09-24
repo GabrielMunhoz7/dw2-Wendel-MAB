@@ -859,7 +859,7 @@
 
             // cache local de moedas (preenchido via API ou via fallback local)
             let coinsData = [];
-            let backendAvailable = true;
+            let backendAvailable = false; // Forçar modo local (usando Supabase)
 
             // amostra local usada quando não houver backend
             const localSample = [
@@ -1534,8 +1534,8 @@
                         if (!username || !password) { alert('Informe usuário e senha.'); return; }
                         try {
                             if (!backendAvailable) {
-                                // modo local: aceita admin/admin
-                                if (username === 'admin' && password === 'admin') {
+                                // modo local: aceita credenciais personalizadas
+                                if (username === 'mabeducativo' && password === 'painelmoedas') {
                                     localStorage.setItem('auth_token', 'local');
                                     localStorage.setItem('auth_mode', 'local');
                                     closeDropdown();
